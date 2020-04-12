@@ -1,0 +1,35 @@
+# Docker
+# Build a Docker image 
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- master
+
+resources:
+- repo: self
+
+variables:
+  tag: '$(Build.BuildId)'
+
+stages:
+- stage: Build
+  displayName: Build Hugo Site
+  jobs:  
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: 'vs2017-win2016'
+    steps:
+    - checkout: self
+      displayName: 'Checkout repository including submodules'
+      submodules: true
+    - task: HugoTask@1
+      displayName: 'Generate Hugo site'
+      inputs:
+        destination: '$(Build.ArtifactStagingDirectory)'
+    - task: PublishPipelineArtifact@0
+      displayName: 'Publish Hugo site as an artifact'
+      inputs:
+        artifactName: 'hugo-site'
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+        
