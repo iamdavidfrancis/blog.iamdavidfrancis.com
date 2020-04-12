@@ -6,7 +6,7 @@ title = "My Blog. Sorry."
 languageCode = "en-us"
 hasCJKLanguage = false
 # Copyright information (Markdown supported)
-copyright = "[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en)"
+# copyright = "[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en)"
 
 # Name of theme
 theme = "meme"
@@ -1205,7 +1205,7 @@ uglyURLs = false
     displaySiteCopyright = true
 
     # Custom Footer (Markdown supported)
-    customFooter = ""
+    customFooter = "Disclaimer: The opinions expressed herein are my own personal opinions and do not represent my employer's view in any way."
 
     displayBusuanziSiteUVAndPV = false
     busuanziSiteUVText = "Site UV"
