@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+
+
+
+
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title>My Blog. Sorry.</title>
+        <link>https://blog.iamdavidfrancis.com/</link>
+        <description>David Francis&#39;s personal blog. Follow if you&#39;re bored I guess.</description>
+        <generator>Hugo 0.69.0 https://gohugo.io/</generator>
+        
+            <language>en-us</language>
+        
+        
+            <managingEditor>david@iamdavidfrancis.com (David Francis)</managingEditor>
+        
+        
+            <webMaster>david@iamdavidfrancis.com (David Francis)</webMaster>
+        
+        
+            <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en)</copyright>
+        
+        <lastBuildDate>Sun, 12 Apr 2020 00:13:26 +0000</lastBuildDate>
+        
+            <atom:link rel="self" type="application/rss+xml" href="https://blog.iamdavidfrancis.com/rss.xml" />
+        
+        
+            <item>
+                <title>Hello World</title>
+                <link>https://blog.iamdavidfrancis.com/posts/hello-world/</link>
+                <guid isPermaLink="true">https://blog.iamdavidfrancis.com/posts/hello-world/</guid>
+                <pubDate>Sat, 11 Apr 2020 16:48:41 -0700</pubDate>
+                
+                    <author>david@iamdavidfrancis.com (David Francis)</author>
+                
+                <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en)</copyright>
+                
+                    <description><![CDATA[<p>Hello there! Welcome to my blog. I can&rsquo;t believe I&rsquo;m doing this, but here we are. If you think this is dumb and I didn&rsquo;t need a blog, same. Someone asked my to write up a blog post about a personal project I did, so here we are. Honestly this was a lot of work and I&rsquo;d much rather be sleeping, but sleeping never got me anywhere so screw that. Don&rsquo;t expect a serious tone from me as I&rsquo;m like one step above &ldquo;I&rsquo;m here so I don&rsquo;t get fined.&rdquo; I know you&rsquo;re going to ask question like &ldquo;Isn&rsquo;t this a personal blog?&rdquo; and &ldquo;It&rsquo;s not like you&rsquo;re being forced to write it right?&rdquo; and while those are both correct, it really undercuts the constant complaining motif I was going for.</p>
+<p>Don&rsquo;t expect a lot of updates, I&rsquo;ve never been able to do that consistently. I figure if I set your expectations low enough now, I will have less disappointment later. So, to recap:</p>
+<ol>
+<li>Don&rsquo;t expect a lot of posts</li>
+<li>Don&rsquo;t expect a serious tone all the time.</li>
+<li>Don&rsquo;t be a dick.</li>
+</ol>
+<p>Thanks for reading, I guess. Honestly I&rsquo;m surprised you made it this far. I guess I&rsquo;m not the only one with nothing better to do.</p>
+]]></description>
+                
+                
+                
+                
+                
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://blog.iamdavidfrancis.com/categories/meta/">meta</category>
+                                
+                            
+                        
+                    
+                        
+                    
+                
+            </item>
+        
+    </channel>
+</rss>
