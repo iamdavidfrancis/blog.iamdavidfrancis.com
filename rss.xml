@@ -21,12 +21,620 @@
             <webMaster>david@iamdavidfrancis.com (David Francis)</webMaster>
         
         
-            <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en)</copyright>
-        
-        <lastBuildDate>Sun, 12 Apr 2020 01:36:40 +0000</lastBuildDate>
+        <lastBuildDate>Sun, 12 Apr 2020 05:07:36 +0000</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://blog.iamdavidfrancis.com/rss.xml" />
         
+        
+            <item>
+                <title>Creating a Discord Bot with Docker</title>
+                <link>https://blog.iamdavidfrancis.com/posts/discord-bot/</link>
+                <guid isPermaLink="true">https://blog.iamdavidfrancis.com/posts/discord-bot/</guid>
+                <pubDate>Sat, 11 Apr 2020 19:11:39 -0700</pubDate>
+                
+                    <author>david@iamdavidfrancis.com (David Francis)</author>
+                
+                
+                
+                    <description><![CDATA[<p>Ever want to make a Discord Bot and have no idea where to get started? Yeah me too. So I spent most of a night looking into making one and setting it up in a Docker container. Some people thought it was an interesting idea, so here&rsquo;s a write up. This post might get a little long, so I may split it up into a couple of posts.</p>
+<h2 id="the-basic-idea-aka-what-is-this-and-why-do-i-care">The Basic Idea (A.K.A. What is this and why do I care?)</h2>
+<p>Discord bots are neat. They do all kinds of things and I&rsquo;ve always wondered how they were implemented. So today we&rsquo;re going to build one together. Well, I&rsquo;m going to build one and explain how along they way. Well, I actually already built it, but I&rsquo;m building it again to explain it. Well, if you&rsquo;re reading this that means I already finished building it twice, so I guess now it&rsquo;s just you building it. At least you have my commentary to help! Unless my commentary is not useful, in which case, IDK there are other blogs explaining this, so go look at one of those.</p>
+<p>Sorry, that was a long winded way of saying nothing. Anyway, here&rsquo;s the plan. We&rsquo;re going to make a bot that will listen on Discord and if someone says &ldquo;Ping&rdquo; it will reply with &ldquo;Pong&rdquo;. We&rsquo;re going to go through the entire process of setting up the bot in Discord, writing the code, turning it into a docker image, pushing the image to Azure Container Registry and then running the docker image on a machine somewhere.</p>
+<p><img src="/images/gifs/hold-on-to-your-butts.gif" alt="Hold on to your butts"></p>
+<h2 id="getting-started">Getting Started</h2>
+<p>Before we get started, make sure you have a development environment set up. I&rsquo;m using <a href="https://code.visualstudio.com/">VS Code</a> as my IDE, but any text editor will work. You&rsquo;ll also need <a href="https://nodejs.org/">nodejs</a> (I&rsquo;m using v12.16.2 right now) and a Discord account. Get one at <a href="https://discordapp.com/">discordapp.com</a>. I&rsquo;ll also be doing this in Typescript since I like actually having a type system, but this can all be done in TS or JS. You will also need <a href="https://www.docker.com/">Docker</a> if you want to run it in a container like I do in steps 3 &amp; 4 below.</p>
+<p>The steps to creating the bot are as follows:</p>
+<ol>
+<li><a href="#1-create-the-bot-on-discord">Create a bot on Discord</a></li>
+<li><a href="#2-implement-the-bot-code-in-js">Implement the bot code in JS (or TS in our case).</a></li>
+<li><a href="#3-create-the-docker-image">Create the docker image.</a></li>
+<li><a href="#4-deploy-the-docker-container-and-test-the-bot">Deploy the docker container and test the bot.</a></li>
+</ol>
+<h2 id="1-create-the-bot-on-discord">1. Create the bot on Discord.</h2>
+<p>First things first, we need to create a bot in Discord and install it into one of our servers. To create the bot you need to go to the <a href="https://discordapp.com/developers/applications">Discord Developer Portal</a>. To create the bot, we first have to create an &ldquo;application&rdquo; in their system. It&rsquo;s a few steps, but it&rsquo;s not too complicated. You&rsquo;ll need to hit the &ldquo;New Application&rdquo; button and choose a name for the Application. Just choose whatever name you want for this, I chose &ldquo;Sample Application&rdquo; and hit &ldquo;Create&rdquo;.</p>
+<p>You will see a page that looks like this:
+<img src="/images/posts/discord-bot/general-information.png" alt="Application general information page"></p>
+<p>From this page, copy down the &ldquo;Client ID&rdquo; as we&rsquo;ll need that in a minute. Then you can click on the &ldquo;Bot&rdquo; link on the left to get to the bot config. You&rsquo;ll need to hit &ldquo;Add Bot&rdquo; and confirm it first. This will create the bot for the application.</p>
+<p><img src="/images/posts/discord-bot/add-bot.png" alt="Create bot flow"></p>
+<p>Once the bot has been created, you&rsquo;ll need to get the token from the bot. You can do this by clicking on the &ldquo;Click to Reveal Token&rdquo; link and copying it, or clicking the &ldquo;Copy&rdquo; button. This token is going to be important later, so put it down somewhere safe. <strong>Important: This token should never be shared with anyone as it will give whoever has it full access to the API as the bot user.</strong></p>
+<p><img src="/images/posts/discord-bot/bot-details.png" alt="Create bot flow"></p>
+<p>Once you have the token saved somewhere, we need to add the bot to a server so we can actually test it in the future. We&rsquo;re going to add the bot with Administrator permissions for now, but you can scope the permissions by using the tool at the bottom of the bot page to get the permission number (Administrator is 8). Once you have the number, you&rsquo;ll need to construct a url to add the bot. The URL should look like this:</p>
+<p><a href="https://discordapp.com/oauth2/authorize?&amp;client_id=CLIENTID&amp;scope=bot&amp;permissions=PERMISSION">https://discordapp.com/oauth2/authorize?&amp;client_id=CLIENTID&amp;scope=bot&amp;permissions=PERMISSION</a></p>
+<p>For us the PERMISSION is 8, so the URL will look something like this:</p>
+<p><a href="https://discordapp.com/oauth2/authorize?&amp;client_id=0000000000&amp;scope=bot&amp;permissions=8">https://discordapp.com/oauth2/authorize?&amp;client_id=0000000000&amp;scope=bot&amp;permissions=8</a></p>
+<p>Copy the URL with your Client ID and paste it into a web browser. From there you can install the bot in a server you are an admin of. You&rsquo;ll know if it worked by logging into Discord and checking if the bot user is a member of the server.</p>
+<h2 id="2-implement-the-bot-code-in-js">2. Implement the bot code in JS</h2>
+<p>Now that you have the bot all set up and installed in a server, we can start working on implementing it. Let&rsquo;s create a folder for working on the bot. I called mine <code>discord-bot</code>.</p>
+<h3 id="21-set-up-packagejson-and-tsconfigjson">2.1 Set up package.json and tsconfig.json</h3>
+<p>I&rsquo;m going to launch VS Code in that folder and finish setting up from there. VS Code has a built in terminal that you can open with <code>Ctrl+` </code>. Let&rsquo;s setup npm with <code>npm init</code>. Just enter information in the prompts or leave the defaults. Either is fine for now. This should create a <code>package.json</code> file in the file explorer. You can see that the <code>package.json</code> contains all the information from the prompts.</p>
+<p><img src="/images/posts/discord-bot/npm-init.png" alt="npm init"></p>
+<p>Now we need to install some packages. Run <code>npm install discord.js --save</code> to add the Discord JS library to the project. Let&rsquo;s also add <code>typescript</code> as a dev dependency with <code>npm install typescript --save-dev</code>. You&rsquo;re going to want the Nodejs typings so run <code>npm install @types/node @types/ws --save-dev</code> as well. Your <code>package.json</code> should now look something like this:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-json" data-lang="json"><span class="p">{</span>
+  <span class="nt">&#34;name&#34;</span><span class="p">:</span> <span class="s2">&#34;discord-bot&#34;</span><span class="p">,</span>
+  <span class="nt">&#34;version&#34;</span><span class="p">:</span> <span class="s2">&#34;1.0.0&#34;</span><span class="p">,</span>
+  <span class="nt">&#34;description&#34;</span><span class="p">:</span> <span class="s2">&#34;&#34;</span><span class="p">,</span>
+  <span class="nt">&#34;main&#34;</span><span class="p">:</span> <span class="s2">&#34;index.js&#34;</span><span class="p">,</span>
+  <span class="nt">&#34;scripts&#34;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&#34;test&#34;</span><span class="p">:</span> <span class="s2">&#34;echo \&#34;Error: no test specified\&#34; &amp;&amp; exit 1&#34;</span>
+  <span class="p">},</span>
+  <span class="nt">&#34;author&#34;</span><span class="p">:</span> <span class="s2">&#34;&#34;</span><span class="p">,</span>
+  <span class="nt">&#34;license&#34;</span><span class="p">:</span> <span class="s2">&#34;ISC&#34;</span><span class="p">,</span>
+  <span class="nt">&#34;dependencies&#34;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&#34;discord.js&#34;</span><span class="p">:</span> <span class="s2">&#34;^12.1.1&#34;</span>
+  <span class="p">},</span>
+  <span class="nt">&#34;devDependencies&#34;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&#34;@types/node&#34;</span><span class="p">:</span> <span class="s2">&#34;^13.11.1&#34;</span><span class="p">,</span>
+    <span class="nt">&#34;@types/ws&#34;</span><span class="p">:</span> <span class="s2">&#34;^7.2.3&#34;</span><span class="p">,</span>
+    <span class="nt">&#34;typescript&#34;</span><span class="p">:</span> <span class="s2">&#34;^3.8.3&#34;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>Next up we need to add a <code>tsconfig.json</code> file to tell typescript how to build everything. Run the following command:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-sh" data-lang="sh">npx tsc --init --rootDir src --outDir dist --target es6 --esModuleInterop --resolveJsonModule --module commonjs --allowJs <span class="nb">true</span> --noImplicitAny <span class="nb">true</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>This will setup our <code>tsconfig.json</code> with some useful defaults. It will look like this:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-json" data-lang="json"><span class="p">{</span>
+  <span class="nt">&#34;compilerOptions&#34;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="err">/*</span> <span class="err">Basic</span> <span class="err">Options</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;incremental&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>                   <span class="err">/*</span> <span class="err">Enable</span> <span class="err">incremental</span> <span class="err">compilation</span> <span class="err">*/</span>
+    <span class="nt">&#34;target&#34;</span><span class="p">:</span> <span class="s2">&#34;es6&#34;</span><span class="p">,</span>                          <span class="err">/*</span> <span class="err">Specify</span> <span class="err">ECMAScript</span> <span class="err">target</span> <span class="err">version:</span> <span class="err">&#39;ES3&#39;</span> <span class="err">(default),</span> <span class="err">&#39;ES5&#39;,</span> <span class="err">&#39;ES2015&#39;,</span> <span class="err">&#39;ES2016&#39;,</span> <span class="err">&#39;ES2017&#39;,</span> <span class="err">&#39;ES2018&#39;,</span> <span class="err">&#39;ES2019&#39;,</span> <span class="err">&#39;ES2020&#39;,</span> <span class="err">or</span> <span class="err">&#39;ESNEXT&#39;.</span> <span class="err">*/</span>
+    <span class="nt">&#34;module&#34;</span><span class="p">:</span> <span class="s2">&#34;commonjs&#34;</span><span class="p">,</span>                     <span class="err">/*</span> <span class="err">Specify</span> <span class="err">module</span> <span class="err">code</span> <span class="err">generation:</span> <span class="err">&#39;none&#39;,</span> <span class="err">&#39;commonjs&#39;,</span> <span class="err">&#39;amd&#39;,</span> <span class="err">&#39;system&#39;,</span> <span class="err">&#39;umd&#39;,</span> <span class="err">&#39;es2015&#39;,</span> <span class="err">&#39;es2020&#39;,</span> <span class="err">or</span> <span class="err">&#39;ESNext&#39;.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;lib&#34;</span><span class="p">:</span> <span class="p">[],</span>                             <span class="err">/*</span> <span class="err">Specify</span> <span class="err">library</span> <span class="err">files</span> <span class="err">to</span> <span class="err">be</span> <span class="err">included</span> <span class="err">in</span> <span class="err">the</span> <span class="err">compilation.</span> <span class="err">*/</span>
+    <span class="nt">&#34;allowJs&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>                          <span class="err">/*</span> <span class="err">Allow</span> <span class="err">javascript</span> <span class="err">files</span> <span class="err">to</span> <span class="err">be</span> <span class="err">compiled.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;checkJs&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>                       <span class="err">/*</span> <span class="err">Report</span> <span class="err">errors</span> <span class="err">in</span> <span class="err">.js</span> <span class="err">files.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;jsx&#34;</span><span class="p">:</span> <span class="s2">&#34;preserve&#34;</span><span class="p">,</span>                     <span class="err">/*</span> <span class="err">Specify</span> <span class="err">JSX</span> <span class="err">code</span> <span class="err">generation:</span> <span class="err">&#39;preserve&#39;,</span> <span class="err">&#39;react-native&#39;,</span> <span class="err">or</span> <span class="err">&#39;react&#39;.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;declaration&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>                   <span class="err">/*</span> <span class="err">Generates</span> <span class="err">corresponding</span> <span class="err">&#39;.d.ts&#39;</span> <span class="err">file.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;declarationMap&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>                <span class="err">/*</span> <span class="err">Generates</span> <span class="err">a</span> <span class="err">sourcemap</span> <span class="err">for</span> <span class="err">each</span> <span class="err">corresponding</span> <span class="err">&#39;.d.ts&#39;</span> <span class="err">file.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;sourceMap&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>                     <span class="err">/*</span> <span class="err">Generates</span> <span class="err">corresponding</span> <span class="err">&#39;.map&#39;</span> <span class="err">file.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;outFile&#34;</span><span class="p">:</span> <span class="s2">&#34;./&#34;</span><span class="p">,</span>                       <span class="err">/*</span> <span class="err">Concatenate</span> <span class="err">and</span> <span class="err">emit</span> <span class="err">output</span> <span class="err">to</span> <span class="err">single</span> <span class="err">file.</span> <span class="err">*/</span>
+    <span class="nt">&#34;outDir&#34;</span><span class="p">:</span> <span class="s2">&#34;dist&#34;</span><span class="p">,</span>                         <span class="err">/*</span> <span class="err">Redirect</span> <span class="err">output</span> <span class="err">structure</span> <span class="err">to</span> <span class="err">the</span> <span class="err">directory.</span> <span class="err">*/</span>
+    <span class="nt">&#34;rootDir&#34;</span><span class="p">:</span> <span class="s2">&#34;src&#34;</span><span class="p">,</span>                         <span class="err">/*</span> <span class="err">Specify</span> <span class="err">the</span> <span class="err">root</span> <span class="err">directory</span> <span class="err">of</span> <span class="err">input</span> <span class="err">files.</span> <span class="err">Use</span> <span class="err">to</span> <span class="err">control</span> <span class="err">the</span> <span class="err">output</span> <span class="err">directory</span> <span class="err">structure</span> <span class="err">with</span> <span class="err">--outDir.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;composite&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>                     <span class="err">/*</span> <span class="err">Enable</span> <span class="err">project</span> <span class="err">compilation</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;tsBuildInfoFile&#34;</span><span class="p">:</span> <span class="s2">&#34;./&#34;</span><span class="p">,</span>               <span class="err">/*</span> <span class="err">Specify</span> <span class="err">file</span> <span class="err">to</span> <span class="err">store</span> <span class="err">incremental</span> <span class="err">compilation</span> <span class="err">information</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;removeComments&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>                <span class="err">/*</span> <span class="err">Do</span> <span class="err">not</span> <span class="err">emit</span> <span class="err">comments</span> <span class="err">to</span> <span class="err">output.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;noEmit&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>                        <span class="err">/*</span> <span class="err">Do</span> <span class="err">not</span> <span class="err">emit</span> <span class="err">outputs.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;importHelpers&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>                 <span class="err">/*</span> <span class="err">Import</span> <span class="err">emit</span> <span class="err">helpers</span> <span class="err">from</span> <span class="err">&#39;tslib&#39;.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;downlevelIteration&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>            <span class="err">/*</span> <span class="err">Provide</span> <span class="err">full</span> <span class="err">support</span> <span class="err">for</span> <span class="err">iterables</span> <span class="err">in</span> <span class="err">&#39;for-of&#39;,</span> <span class="err">spread,</span> <span class="err">and</span> <span class="err">destructuring</span> <span class="err">when</span> <span class="err">targeting</span> <span class="err">&#39;ES5&#39;</span> <span class="err">or</span> <span class="err">&#39;ES3&#39;.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;isolatedModules&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>               <span class="err">/*</span> <span class="err">Transpile</span> <span class="err">each</span> <span class="err">file</span> <span class="err">as</span> <span class="err">a</span> <span class="err">separate</span> <span class="err">module</span> <span class="err">(similar</span> <span class="err">to</span> <span class="err">&#39;ts.transpileModule&#39;).</span> <span class="err">*/</span>
+
+    <span class="err">/*</span> <span class="err">Strict</span> <span class="err">Type-Checking</span> <span class="err">Options</span> <span class="err">*/</span>
+    <span class="nt">&#34;strict&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>                           <span class="err">/*</span> <span class="err">Enable</span> <span class="err">all</span> <span class="err">strict</span> <span class="err">type-checking</span> <span class="err">options.</span> <span class="err">*/</span>
+    <span class="nt">&#34;noImplicitAny&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>                    <span class="err">/*</span> <span class="err">Raise</span> <span class="err">error</span> <span class="err">on</span> <span class="err">expressions</span> <span class="err">and</span> <span class="err">declarations</span> <span class="err">with</span> <span class="err">an</span> <span class="err">implied</span> <span class="err">&#39;any&#39;</span> <span class="err">type.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;strictNullChecks&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>              <span class="err">/*</span> <span class="err">Enable</span> <span class="err">strict</span> <span class="err">null</span> <span class="err">checks.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;strictFunctionTypes&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>           <span class="err">/*</span> <span class="err">Enable</span> <span class="err">strict</span> <span class="err">checking</span> <span class="err">of</span> <span class="err">function</span> <span class="err">types.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;strictBindCallApply&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>           <span class="err">/*</span> <span class="err">Enable</span> <span class="err">strict</span> <span class="err">&#39;bind&#39;,</span> <span class="err">&#39;call&#39;,</span> <span class="err">and</span> <span class="err">&#39;apply&#39;</span> <span class="err">methods</span> <span class="err">on</span> <span class="err">functions.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;strictPropertyInitialization&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>  <span class="err">/*</span> <span class="err">Enable</span> <span class="err">strict</span> <span class="err">checking</span> <span class="err">of</span> <span class="err">property</span> <span class="err">initialization</span> <span class="err">in</span> <span class="err">classes.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;noImplicitThis&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>                <span class="err">/*</span> <span class="err">Raise</span> <span class="err">error</span> <span class="err">on</span> <span class="err">&#39;this&#39;</span> <span class="err">expressions</span> <span class="err">with</span> <span class="err">an</span> <span class="err">implied</span> <span class="err">&#39;any&#39;</span> <span class="err">type.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;alwaysStrict&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>                  <span class="err">/*</span> <span class="err">Parse</span> <span class="err">in</span> <span class="err">strict</span> <span class="err">mode</span> <span class="err">and</span> <span class="err">emit</span> <span class="nt">&#34;use strict&#34;</span> <span class="err">for</span> <span class="err">each</span> <span class="err">source</span> <span class="err">file.</span> <span class="err">*/</span>
+
+    <span class="err">/*</span> <span class="err">Additional</span> <span class="err">Checks</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="s2">&#34;noUnusedLocals&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>                <span class="err">/*</span> <span class="err">Report</span> <span class="err">errors</span> <span class="err">on</span> <span class="err">unused</span> <span class="err">locals.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;noUnusedParameters&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>            <span class="err">/*</span> <span class="err">Report</span> <span class="err">errors</span> <span class="err">on</span> <span class="err">unused</span> <span class="err">parameters.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;noImplicitReturns&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>             <span class="err">/*</span> <span class="err">Report</span> <span class="err">error</span> <span class="err">when</span> <span class="err">not</span> <span class="err">all</span> <span class="err">code</span> <span class="err">paths</span> <span class="err">in</span> <span class="err">function</span> <span class="err">return</span> <span class="err">a</span> <span class="err">value.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;noFallthroughCasesInSwitch&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>    <span class="err">/*</span> <span class="err">Report</span> <span class="err">errors</span> <span class="err">for</span> <span class="err">fallthrough</span> <span class="err">cases</span> <span class="err">in</span> <span class="err">switch</span> <span class="err">statement.</span> <span class="err">*/</span>
+
+    <span class="err">/*</span> <span class="err">Module</span> <span class="err">Resolution</span> <span class="err">Options</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;moduleResolution&#34;</span><span class="p">:</span> <span class="s2">&#34;node&#34;</span><span class="p">,</span>            <span class="err">/*</span> <span class="err">Specify</span> <span class="err">module</span> <span class="err">resolution</span> <span class="err">strategy:</span> <span class="err">&#39;node&#39;</span> <span class="err">(Node.js)</span> <span class="err">or</span> <span class="err">&#39;classic&#39;</span> <span class="err">(TypeScript</span> <span class="err">pre-1.6).</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;baseUrl&#34;</span><span class="p">:</span> <span class="s2">&#34;./&#34;</span><span class="p">,</span>                       <span class="err">/*</span> <span class="err">Base</span> <span class="err">directory</span> <span class="err">to</span> <span class="err">resolve</span> <span class="err">non-absolute</span> <span class="err">module</span> <span class="err">names.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;paths&#34;</span><span class="p">:</span> <span class="p">{},</span>                           <span class="err">/*</span> <span class="err">A</span> <span class="err">series</span> <span class="err">of</span> <span class="err">entries</span> <span class="err">which</span> <span class="err">re-map</span> <span class="err">imports</span> <span class="err">to</span> <span class="err">lookup</span> <span class="err">locations</span> <span class="err">relative</span> <span class="err">to</span> <span class="err">the</span> <span class="err">&#39;baseUrl&#39;.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;rootDirs&#34;</span><span class="p">:</span> <span class="p">[],</span>                        <span class="err">/*</span> <span class="err">List</span> <span class="err">of</span> <span class="err">root</span> <span class="err">folders</span> <span class="err">whose</span> <span class="err">combined</span> <span class="err">content</span> <span class="err">represents</span> <span class="err">the</span> <span class="err">structure</span> <span class="err">of</span> <span class="err">the</span> <span class="err">project</span> <span class="err">at</span> <span class="err">runtime.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;typeRoots&#34;</span><span class="p">:</span> <span class="p">[],</span>                       <span class="err">/*</span> <span class="err">List</span> <span class="err">of</span> <span class="err">folders</span> <span class="err">to</span> <span class="err">include</span> <span class="err">type</span> <span class="err">definitions</span> <span class="err">from.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;types&#34;</span><span class="p">:</span> <span class="p">[],</span>                           <span class="err">/*</span> <span class="err">Type</span> <span class="err">declaration</span> <span class="err">files</span> <span class="err">to</span> <span class="err">be</span> <span class="err">included</span> <span class="err">in</span> <span class="err">compilation.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;allowSyntheticDefaultImports&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>  <span class="err">/*</span> <span class="err">Allow</span> <span class="err">default</span> <span class="err">imports</span> <span class="err">from</span> <span class="err">modules</span> <span class="err">with</span> <span class="err">no</span> <span class="err">default</span> <span class="err">export.</span> <span class="err">This</span> <span class="err">does</span> <span class="err">not</span> <span class="err">affect</span> <span class="err">code</span> <span class="err">emit,</span> <span class="err">just</span> <span class="err">typechecking.</span> <span class="err">*/</span>
+    <span class="nt">&#34;esModuleInterop&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>                  <span class="err">/*</span> <span class="err">Enables</span> <span class="err">emit</span> <span class="err">interoperability</span> <span class="err">between</span> <span class="err">CommonJS</span> <span class="err">and</span> <span class="err">ES</span> <span class="err">Modules</span> <span class="err">via</span> <span class="err">creation</span> <span class="err">of</span> <span class="err">namespace</span> <span class="err">objects</span> <span class="err">for</span> <span class="err">all</span> <span class="err">imports.</span> <span class="err">Implies</span> <span class="err">&#39;allowSyntheticDefaultImports&#39;.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;preserveSymlinks&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>              <span class="err">/*</span> <span class="err">Do</span> <span class="err">not</span> <span class="err">resolve</span> <span class="err">the</span> <span class="err">real</span> <span class="err">path</span> <span class="err">of</span> <span class="err">symlinks.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;allowUmdGlobalAccess&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>          <span class="err">/*</span> <span class="err">Allow</span> <span class="err">accessing</span> <span class="err">UMD</span> <span class="err">globals</span> <span class="err">from</span> <span class="err">modules.</span> <span class="err">*/</span>
+
+    <span class="err">/*</span> <span class="err">Source</span> <span class="err">Map</span> <span class="err">Options</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;sourceRoot&#34;</span><span class="p">:</span> <span class="s2">&#34;&#34;</span><span class="p">,</span>                      <span class="err">/*</span> <span class="err">Specify</span> <span class="err">the</span> <span class="err">location</span> <span class="err">where</span> <span class="err">debugger</span> <span class="err">should</span> <span class="err">locate</span> <span class="err">TypeScript</span> <span class="err">files</span> <span class="err">instead</span> <span class="err">of</span> <span class="err">source</span> <span class="err">locations.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;mapRoot&#34;</span><span class="p">:</span> <span class="s2">&#34;&#34;</span><span class="p">,</span>                         <span class="err">/*</span> <span class="err">Specify</span> <span class="err">the</span> <span class="err">location</span> <span class="err">where</span> <span class="err">debugger</span> <span class="err">should</span> <span class="err">locate</span> <span class="err">map</span> <span class="err">files</span> <span class="err">instead</span> <span class="err">of</span> <span class="err">generated</span> <span class="err">locations.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;inlineSourceMap&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>               <span class="err">/*</span> <span class="err">Emit</span> <span class="err">a</span> <span class="err">single</span> <span class="err">file</span> <span class="err">with</span> <span class="err">source</span> <span class="err">maps</span> <span class="err">instead</span> <span class="err">of</span> <span class="err">having</span> <span class="err">a</span> <span class="err">separate</span> <span class="err">file.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;inlineSources&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>                 <span class="err">/*</span> <span class="err">Emit</span> <span class="err">the</span> <span class="err">source</span> <span class="err">alongside</span> <span class="err">the</span> <span class="err">sourcemaps</span> <span class="err">within</span> <span class="err">a</span> <span class="err">single</span> <span class="err">file;</span> <span class="err">requires</span> <span class="err">&#39;--inlineSourceMap&#39;</span> <span class="err">or</span> <span class="err">&#39;--sourceMap&#39;</span> <span class="err">to</span> <span class="err">be</span> <span class="err">set.</span> <span class="err">*/</span>
+
+    <span class="err">/*</span> <span class="err">Experimental</span> <span class="err">Options</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;experimentalDecorators&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>        <span class="err">/*</span> <span class="err">Enables</span> <span class="err">experimental</span> <span class="err">support</span> <span class="err">for</span> <span class="err">ES7</span> <span class="err">decorators.</span> <span class="err">*/</span>
+    <span class="err">//</span> <span class="nt">&#34;emitDecoratorMetadata&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>         <span class="err">/*</span> <span class="err">Enables</span> <span class="err">experimental</span> <span class="err">support</span> <span class="err">for</span> <span class="err">emitting</span> <span class="err">type</span> <span class="err">metadata</span> <span class="err">for</span> <span class="err">decorators.</span> <span class="err">*/</span>
+
+    <span class="err">/*</span> <span class="err">Advanced</span> <span class="err">Options</span> <span class="err">*/</span>
+    <span class="nt">&#34;resolveJsonModule&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>                <span class="err">/*</span> <span class="err">Include</span> <span class="err">modules</span> <span class="err">imported</span> <span class="err">with</span> <span class="err">&#39;.json&#39;</span> <span class="err">extension</span> <span class="err">*/</span>
+    <span class="nt">&#34;forceConsistentCasingInFileNames&#34;</span><span class="p">:</span> <span class="kc">true</span>  <span class="err">/*</span> <span class="err">Disallow</span> <span class="err">inconsistently-cased</span> <span class="err">references</span> <span class="err">to</span> <span class="err">the</span> <span class="err">same</span> <span class="err">file.</span> <span class="err">*/</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>Now that this is done, we can make a few changes to <code>package.json</code> to enable some easier testing and running. Let&rsquo;s update the <code>&quot;main&quot;</code> property to <code>dist/index.js</code> since we won&rsquo;t be running anything from <code>/src</code>. Let&rsquo;s also add some scripts to enable building and running our bot code:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-json" data-lang="json"><span class="s2">&#34;scripts&#34;</span><span class="err">:</span> <span class="p">{</span>
+    <span class="nt">&#34;dev&#34;</span><span class="p">:</span> <span class="s2">&#34;nodemon --watch &#39;src/**/*&#39; --exec &#39;ts-node&#39; src/index.ts&#34;</span><span class="p">,</span>
+    <span class="nt">&#34;build&#34;</span><span class="p">:</span> <span class="s2">&#34;tsc&#34;</span><span class="p">,</span>
+    <span class="nt">&#34;start&#34;</span><span class="p">:</span> <span class="s2">&#34;node dist/index.js&#34;</span><span class="p">,</span>
+    <span class="nt">&#34;debug&#34;</span><span class="p">:</span> <span class="s2">&#34;node --inspect dist/index.js&#34;</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>Your <code>package.json</code> should look like this now:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-json" data-lang="json"><span class="p">{</span>
+  <span class="nt">&#34;name&#34;</span><span class="p">:</span> <span class="s2">&#34;discord-bot&#34;</span><span class="p">,</span>
+  <span class="nt">&#34;version&#34;</span><span class="p">:</span> <span class="s2">&#34;1.0.0&#34;</span><span class="p">,</span>
+  <span class="nt">&#34;description&#34;</span><span class="p">:</span> <span class="s2">&#34;&#34;</span><span class="p">,</span>
+  <span class="nt">&#34;main&#34;</span><span class="p">:</span> <span class="s2">&#34;dist/index.js&#34;</span><span class="p">,</span>
+  <span class="nt">&#34;scripts&#34;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&#34;dev&#34;</span><span class="p">:</span> <span class="s2">&#34;nodemon --watch &#39;src/**/*&#39; --exec &#39;ts-node&#39; src/index.ts&#34;</span><span class="p">,</span>
+    <span class="nt">&#34;build&#34;</span><span class="p">:</span> <span class="s2">&#34;tsc&#34;</span><span class="p">,</span>
+    <span class="nt">&#34;start&#34;</span><span class="p">:</span> <span class="s2">&#34;node dist/index.js&#34;</span><span class="p">,</span>
+    <span class="nt">&#34;debug&#34;</span><span class="p">:</span> <span class="s2">&#34;node --inspect dist/index.js&#34;</span>
+  <span class="p">},</span>
+  <span class="nt">&#34;author&#34;</span><span class="p">:</span> <span class="s2">&#34;&#34;</span><span class="p">,</span>
+  <span class="nt">&#34;license&#34;</span><span class="p">:</span> <span class="s2">&#34;ISC&#34;</span><span class="p">,</span>
+  <span class="nt">&#34;dependencies&#34;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&#34;discord.js&#34;</span><span class="p">:</span> <span class="s2">&#34;^12.1.1&#34;</span>
+  <span class="p">},</span>
+  <span class="nt">&#34;devDependencies&#34;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">&#34;@types/node&#34;</span><span class="p">:</span> <span class="s2">&#34;^13.11.1&#34;</span><span class="p">,</span>
+    <span class="nt">&#34;typescript&#34;</span><span class="p">:</span> <span class="s2">&#34;^3.8.3&#34;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="22-adding-the-bot-entry-point-and-connecting-to-discord">2.2 Adding the bot entry point and connecting to Discord</h3>
+<p>Now that all we&rsquo;ve got typescript and node set up, let&rsquo;s get started on implementation. Let&rsquo;s create a <code>src</code> folder and put an <code>index.ts</code> file in it. The main part of this file will be creating the Discord client and connecting to Discord with it. Note: Discord.js has a ton of built in functionality and is too much to cover in this blog post. You can read the full docs <a href="https://discord.js.org/#/docs/main/stable/general/welcome">here</a>. I&rsquo;ll cover the code in the file by blocks, so the first thing we want to do is add this:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-ts" data-lang="ts"><span class="kr">import</span> <span class="nx">Discord</span> <span class="nx">from</span> <span class="s2">&#34;discord.js&#34;</span><span class="p">;</span>
+
+<span class="c1">// Discord token is required.
+</span><span class="c1"></span><span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">DISCORD_TOKEN</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&#34;DISCORD_TOKEN environment variable missing.&#34;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kr">const</span> <span class="nx">onReady</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="c1">// TODO: Implement this
+</span><span class="c1"></span><span class="p">};</span>
+<span class="kr">const</span> <span class="nx">onMessage</span> <span class="o">=</span> <span class="p">(</span><span class="nx">message</span>: <span class="kt">Discord.Message</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span> 
+    <span class="c1">// TODO: Implement this
+</span><span class="c1"></span><span class="p">};</span>
+
+<span class="kr">const</span> <span class="nx">client</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Discord</span><span class="p">.</span><span class="nx">Client</span><span class="p">();</span>
+
+<span class="nx">client</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;ready&#39;</span><span class="p">,</span> <span class="nx">onReady</span><span class="p">);</span>
+<span class="nx">client</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;message&#39;</span><span class="p">,</span> <span class="nx">onMessage</span><span class="p">);</span>
+
+<span class="kr">const</span> <span class="nx">discordToken</span>: <span class="kt">string</span> <span class="o">=</span> <span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">DISCORD_TOKEN</span><span class="p">;</span>
+
+<span class="nx">client</span><span class="p">.</span><span class="nx">login</span><span class="p">(</span><span class="nx">discordToken</span><span class="p">);</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>This will bring in the Discord library under the name <code>Discord</code>. It also will read in the token from an Environment variable. I don&rsquo;t like hard coding secrets, especially if I&rsquo;m checking them into source control. So let&rsquo;s throw if the token is not in the environment and set it to a local variable while we do the rest.</p>
+<p>The <code>onReady</code> and <code>onMessage</code> handlers will be invoked once the client starts up and when incoming messages come in. We&rsquo;ll actually implement them a little later.</p>
+<p>The <code>client</code> is actually the magic that will connect to Discord and calls into our <code>onReady</code> and <code>onMessage</code> callbacks.</p>
+<p>The call to <code>client.login(discordToken)</code> will initiate the connection to Discord. At this point, we can add some logging into the <code>onReady</code> handler and see what happens when we run it. Update the code with the following:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-ts" data-lang="ts"><span class="kr">const</span> <span class="nx">onReady</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&#34;Connected&#34;</span><span class="p">);</span>
+    
+    <span class="k">if</span> <span class="p">(</span><span class="nx">client</span><span class="p">.</span><span class="nx">user</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Logged in as </span><span class="si">${</span><span class="nx">client</span><span class="p">.</span><span class="nx">user</span><span class="p">.</span><span class="nx">tag</span><span class="si">}</span><span class="sb">.`</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>Once that&rsquo;s in, run <code>npm run build</code> to generate the <code>dist</code> folder with the generated javascript. Once that completes, run <code>npm run start</code> to start the bot running locally. You should see something along the lines of this:</p>
+<pre><code>PS D:\temp-blog\discord-bot&gt; npm run start
+
+&gt; discord-bot@1.0.0 start D:\temp-blog\discord-bot
+&gt; node dist/index.js
+
+D:\temp-blog\discord-bot\dist\index.js:9
+    throw new Error(&quot;DISCORD_TOKEN environment variable missing.&quot;);
+    ^
+
+Error: DISCORD_TOKEN environment variable missing.
+</code></pre><p>This is because we haven&rsquo;t set the environment variable with our token yet. I&rsquo;m using Powershell, so I&rsquo;m going to run:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-powershell" data-lang="powershell"><span class="nv">$env:DISCORD_TOKEN</span> <span class="p">=</span> <span class="s1">&#39;MyToken&#39;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>If you run <code>npm run start</code> again you should now see the log lines when you bot connects:</p>
+<pre><code>PS D:\temp-blog\discord-bot&gt; npm run start
+
+&gt; discord-bot@1.0.0 start D:\temp-blog\discord-bot
+&gt; node dist/index.js
+
+Connected
+Logged in as Sample Application#2809.
+</code></pre><p>Go ahead and hit <code>Ctrl+C</code> to stop the process.</p>
+<h3 id="23-handling-incoming-messages">2.3 Handling incoming messages.</h3>
+<p>Now that we are connected to Discord, we can implement our message handling. As I said earlier, this bot will just respond &ldquo;Pong&rdquo; when someone sends &ldquo;Ping&rdquo;, so let&rsquo;s build a pretty simple handler.</p>
+<p>In our <code>onMessage</code> method let&rsquo;s add our new code:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-ts" data-lang="ts"><span class="kr">const</span> <span class="nx">onMessage</span> <span class="o">=</span> <span class="p">(</span><span class="nx">message</span>: <span class="kt">Discord.Message</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span> 
+    <span class="c1">// Don&#39;t respond to bots.
+</span><span class="c1"></span>    <span class="k">if</span> <span class="p">(</span><span class="nx">message</span><span class="p">.</span><span class="nx">author</span><span class="p">.</span><span class="nx">bot</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="nx">message</span><span class="p">.</span><span class="nx">content</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&#34;ping&#34;</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">message</span><span class="p">.</span><span class="nx">reply</span><span class="p">(</span><span class="s2">&#34;Pong!&#34;</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>Now you can run <code>npm run build</code> and <code>npm run start</code> again. Once you see the &ldquo;Connected&rdquo; log show up, go back to your Discord server and send a message &ldquo;Ping&rdquo;. You should see this response:</p>
+<p><img src="/images/posts/discord-bot/bot-output.png" alt="Bot working"></p>
+<p>Now we&rsquo;re ready to start working on the Docker Image.</p>
+<h2 id="3-create-the-docker-image">3. Create the Docker Image</h2>
+<p>The first step to creating the Docker image will be to add a Dockerfile. Lets create a <code>Dockerfile</code> at the root of our <code>discord-bot</code> folder. Set the content of the Dockerfile to this:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-Dockerfile" data-lang="Dockerfile"><span class="k">FROM</span><span class="s"> node:lts</span><span class="err">
+</span><span class="err"></span><span class="err">
+</span><span class="err"></span><span class="k">USER</span><span class="s"> root</span><span class="err">
+</span><span class="err"></span><span class="k">ENV</span> APP /usr/src/APP<span class="err">
+</span><span class="err"></span><span class="err">
+</span><span class="err"></span><span class="k">COPY</span> package.json /tmp/package.json<span class="err">
+</span><span class="err"></span><span class="err">
+</span><span class="err"></span><span class="k">RUN</span> <span class="nb">cd</span> /tmp <span class="o">&amp;&amp;</span> npm install --loglevel<span class="o">=</span>warn <span class="se">\</span><span class="err">
+</span><span class="err"></span>    <span class="o">&amp;&amp;</span> mkdir -p <span class="nv">$APP</span> <span class="se">\</span><span class="err">
+</span><span class="err"></span>    <span class="o">&amp;&amp;</span> mv /tmp/node_modules <span class="nv">$APP</span><span class="err">
+</span><span class="err"></span><span class="err">
+</span><span class="err"></span><span class="k">COPY</span> src <span class="nv">$APP</span>/src<span class="err">
+</span><span class="err"></span><span class="k">COPY</span> package.json <span class="nv">$APP</span><span class="err">
+</span><span class="err"></span><span class="k">COPY</span> tsconfig.json <span class="nv">$APP</span><span class="err">
+</span><span class="err"></span><span class="err">
+</span><span class="err"></span><span class="k">WORKDIR</span><span class="s"> $APP</span><span class="err">
+</span><span class="err"></span><span class="err">
+</span><span class="err"></span><span class="k">RUN</span> npm run build<span class="err">
+</span><span class="err"></span><span class="err">
+</span><span class="err"></span><span class="k">CMD</span> <span class="p">[</span> <span class="s2">&#34;node&#34;</span><span class="p">,</span> <span class="s2">&#34;dist/index.js&#34;</span> <span class="p">]</span><span class="err">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>Let&rsquo;s break down what we&rsquo;re doing in there. We start with setting the base image to <code>node:lts</code> to get the current LTS nodejs in our container.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-Dockerfile" data-lang="Dockerfile"><span class="k">USER</span><span class="s"> root</span><span class="err">
+</span><span class="err"></span><span class="k">ENV</span> APP /usr/src/APP<span class="err">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>Here we&rsquo;re setting the user to run as and adding an environment variable with the path we&rsquo;re installing the bot to.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-Dockerfile" data-lang="Dockerfile"><span class="k">COPY</span> package.json /tmp/package.json<span class="err">
+</span><span class="err"></span><span class="err">
+</span><span class="err"></span><span class="k">RUN</span> <span class="nb">cd</span> /tmp <span class="o">&amp;&amp;</span> npm install --loglevel<span class="o">=</span>warn <span class="se">\</span><span class="err">
+</span><span class="err"></span>    <span class="o">&amp;&amp;</span> mkdir -p <span class="nv">$APP</span> <span class="se">\</span><span class="err">
+</span><span class="err"></span>    <span class="o">&amp;&amp;</span> mv /tmp/node_modules <span class="nv">$APP</span><span class="err">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>This is copying the <code>package.json</code> into a temp folder to run an <code>npm install</code> to download our dependencies. Then it copies the dependencies into our <code>$APP</code> directory.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-Dockerfile" data-lang="Dockerfile"><span class="k">COPY</span> src <span class="nv">$APP</span>/src<span class="err">
+</span><span class="err"></span><span class="k">COPY</span> package.json <span class="nv">$APP</span><span class="err">
+</span><span class="err"></span><span class="k">COPY</span> tsconfig.json <span class="nv">$APP</span><span class="err">
+</span><span class="err"></span><span class="err">
+</span><span class="err"></span><span class="k">WORKDIR</span><span class="s"> $APP</span><span class="err">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>This is copying app files into the final directory and moving our working directory there.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-Dockerfile" data-lang="Dockerfile"><span class="k">RUN</span> npm run build<span class="err">
+</span><span class="err"></span><span class="err">
+</span><span class="err"></span><span class="k">CMD</span> <span class="p">[</span> <span class="s2">&#34;node&#34;</span><span class="p">,</span> <span class="s2">&#34;dist/index.js&#34;</span> <span class="p">]</span><span class="err">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>This builds the bot and then runs it. Now let&rsquo;s actually build our docker image. Go ahead and run this command:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-powershell" data-lang="powershell"><span class="n">docker</span> <span class="n">build</span> <span class="p">.</span> <span class="n">-t</span> <span class="n">discord-bot</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>This will build the image and tag it with <code>discord-bot</code>. You can you another tag if you like. Now you can try running your docker image. Remember to pass in your token via the <code>-e</code> flag. Here&rsquo;s what my command looks like:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-powershell" data-lang="powershell"><span class="n">docker</span> <span class="n">run</span> <span class="n">-e</span> <span class="n">DISCORD_TOKEN</span><span class="p">=</span><span class="nv">$env:DISCORD_TOKEN</span> <span class="n">docker-bot</span>
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="4-deploy-the-docker-container-and-test-the-bot">4. Deploy the docker container and test the bot.</h2>
+<p>To deploy the container off of your local machine, you first need to push it to your registry. I&rsquo;m going to use Azure Container Registry (ACR) since I already have one. You could always publish to DockerHub, but it was easier for me to use my existing registry. If you&rsquo;re interested in using Azure, instructions for setting up a new registry in Azure can be found <a href="https://docs.microsoft.com/en-us/azure/container-registry/container-registry-get-started-portal">here</a>.</p>
+<p>Since I&rsquo;m using ACR for this, I need to tag my image a little differently, so I&rsquo;m going to run these commands to push it:</p>
+<pre><code>docker tag discord-bot mysupercoolregistry.azurecr.io/discord-bot
+docker push mysupercoolregistry.azurecr.io/discord-bot:latest
+</code></pre><p>Now that it&rsquo;s deployed, I can go to my Docker VM host and run the following command to run the image:</p>
+<pre><code>docker run -e DISCORD_TOKEN='&lt;SecretToken&gt;' --restart unless-stopped mysupercoolregistry.azurecr.io/discord-bot:latest
+</code></pre><p>And that&rsquo;s it, we&rsquo;re all set up and running. The bot will always run unless I manually turn it off in Docker. Thanks for reading all the way through. If I feel like it, I&rsquo;ll put up a blog post about how I set up CI/CD to deploy new updates to ACR using Azure DevOps Pipelines and GitHub.</p>
+]]></description>
+                
+                
+                
+                
+                
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://blog.iamdavidfrancis.com/categories/development/">development</category>
+                                
+                            
+                        
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://blog.iamdavidfrancis.com/tags/js/">js</category>
+                                
+                            
+                                
+                                
+                                
+                                    <category domain="https://blog.iamdavidfrancis.com/tags/docker/">docker</category>
+                                
+                            
+                        
+                    
+                
+            </item>
         
             <item>
                 <title>Hello World</title>
@@ -36,7 +644,7 @@
                 
                     <author>david@iamdavidfrancis.com (David Francis)</author>
                 
-                <copyright>[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en)</copyright>
+                
                 
                     <description><![CDATA[<p>Hello there! Welcome to my blog. I can&rsquo;t believe I&rsquo;m doing this, but here we are. If you think this is dumb and I didn&rsquo;t need a blog, same. Someone asked my to write up a blog post about a personal project I did, so here we are. Honestly this was a lot of work and I&rsquo;d much rather be sleeping, but sleeping never got me anywhere so screw that. Don&rsquo;t expect a serious tone from me as I&rsquo;m like one step above &ldquo;I&rsquo;m here so I don&rsquo;t get fined.&rdquo; I know you&rsquo;re going to ask question like &ldquo;Isn&rsquo;t this a personal blog?&rdquo; and &ldquo;It&rsquo;s not like you&rsquo;re being forced to write it right?&rdquo; and while those are both correct, it really undercuts the constant complaining motif I was going for.</p>
 <p>Don&rsquo;t expect a lot of updates, I&rsquo;ve never been able to do that consistently. I figure if I set your expectations low enough now, I will have less disappointment later. So, to recap:</p>

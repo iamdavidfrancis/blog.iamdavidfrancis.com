@@ -4,7 +4,42 @@
   
   <url>
     <loc>https://blog.iamdavidfrancis.com/categories/</loc>
-    <lastmod>2020-04-11T17:02:19-07:00</lastmod>
+    <lastmod>2020-04-11T22:06:27-07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/posts/discord-bot/</loc>
+    <lastmod>2020-04-11T22:06:27-07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/categories/development/</loc>
+    <lastmod>2020-04-11T22:06:27-07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/tags/docker/</loc>
+    <lastmod>2020-04-11T22:06:27-07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/tags/js/</loc>
+    <lastmod>2020-04-11T22:06:27-07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/</loc>
+    <lastmod>2020-04-11T22:06:27-07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/posts/</loc>
+    <lastmod>2020-04-11T22:06:27-07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/tags/</loc>
+    <lastmod>2020-04-11T22:06:27-07:00</lastmod>
   </url>
   
   <url>
@@ -18,22 +53,8 @@
   </url>
   
   <url>
-    <loc>https://blog.iamdavidfrancis.com/</loc>
-    <lastmod>2020-04-11T17:02:19-07:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.iamdavidfrancis.com/posts/</loc>
-    <lastmod>2020-04-11T17:02:19-07:00</lastmod>
-  </url>
-  
-  <url>
     <loc>https://blog.iamdavidfrancis.com/about/</loc>
     <lastmod>2020-04-11T17:02:19-07:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.iamdavidfrancis.com/tags/</loc>
   </url>
   
 </urlset>
