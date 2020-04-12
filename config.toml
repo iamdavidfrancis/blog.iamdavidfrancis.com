@@ -102,7 +102,7 @@ uglyURLs = false
     # Avatar
     avatar = "/icons/apple-touch-icon.png"
     # Personal website, default: baseURL
-    website = "https://iamdavidfrancis/com/"
+    website = "https://iamdavidfrancis.com/"
     # Twitter
     twitter = "iamdavidfrancis"
 
