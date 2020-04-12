@@ -1069,7 +1069,7 @@ uglyURLs = false
     #       `gitinfo` in post’s Front Matter
     #       has a higher priority than here
 
-    repoURL = ""
+    repoURL = "https://github.com/iamdavidfrancis/blog.iamdavidfrancis.com"
     repoEditURL = ""
 
     gitIcon = "code-branch"
@@ -1102,11 +1102,11 @@ uglyURLs = false
     shareOnTwitter = true
     shareOnFacebook = true
     shareOnLinkedIn = true
-    shareOnTelegram = true
-    shareOnWeibo = true
-    shareOnDouban = true
-    shareOnQQ = true
-    shareOnQzone = true
+    shareOnTelegram = false
+    shareOnWeibo = false
+    shareOnDouban = false
+    shareOnQQ = false
+    shareOnQzone = false
 
     shareViaQRCode = true
 
@@ -1194,7 +1194,7 @@ uglyURLs = false
 
     # Leave it empty("") if you don’t want
     # the icon
-    iconBetweenYearAndAuthor = "heart"
+    iconBetweenYearAndAuthor = ""
     iconColor = "#f06292"
     # Enable heartbeat animation?
     iconAnimation = true
@@ -1238,7 +1238,7 @@ uglyURLs = false
     enableHighlight = true
 
     enableOverflowY = true
-    maxHeight = 20
+    maxHeight = 30
     # Unit: em
 
     enableCopy = true
