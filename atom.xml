@@ -4,7 +4,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us">
     <title type="text">My Blog. Sorry.</title>
     <subtitle type="html">David Francis&#39;s personal blog. Follow if you&#39;re bored I guess.</subtitle>
-    <updated>2020-04-12T05:07:36+00:00</updated>
+    <updated>2020-04-12T05:31:16+00:00</updated>
     <id>https://blog.iamdavidfrancis.com/</id>
     <link rel="alternate" type="text/html" href="https://blog.iamdavidfrancis.com/" />
     <link rel="self" type="application/atom+xml" href="https://blog.iamdavidfrancis.com/atom.xml" />
@@ -24,7 +24,7 @@
             <published>2020-04-11T19:11:39-07:00</published>
             <author>
                     <name>David Francis</name>
-                    <uri>https://iamdavidfrancis/com/</uri>
+                    <uri>https://iamdavidfrancis.com/</uri>
                     <email>david@iamdavidfrancis.com</email>
                     </author>
             <summary type="html"><![CDATA[Ever want to make a Discord Bot and have no idea where to get started? Yeah me too. So I spent most of a night looking into making one and setting it up in a Docker container. Some people thought it was an interesting idea, so here&rsquo;s a write up.]]></summary>
@@ -637,7 +637,7 @@ docker push mysupercoolregistry.azurecr.io/discord-bot:latest
             <published>2020-04-11T16:48:41-07:00</published>
             <author>
                     <name>David Francis</name>
-                    <uri>https://iamdavidfrancis/com/</uri>
+                    <uri>https://iamdavidfrancis.com/</uri>
                     <email>david@iamdavidfrancis.com</email>
                     </author>
             <summary type="html"><![CDATA[Hello there! Welcome to my blog. I can&rsquo;t believe I&rsquo;m doing this, but here we are. If you think this is dumb and I didn&rsquo;t need a blog, same. Someone asked my to write up a blog post about a personal project I did, so here we are.]]></summary>
