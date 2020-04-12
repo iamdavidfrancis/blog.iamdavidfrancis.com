@@ -1,6 +1,7 @@
 ---
 title: "Creating a Discord Bot with Docker"
 date: 2020-04-11T19:11:39-07:00
+publish-date: 2020-04-11T22:30:00-07:00
 draft: false
 categories: ["development"]
 tags: ["js", "docker"]
