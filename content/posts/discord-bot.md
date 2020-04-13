@@ -169,7 +169,6 @@ This will setup our `tsconfig.json` with some useful defaults. It will look like
 Now that this is done, we can make a few changes to `package.json` to enable some easier testing and running. Let's update the `"main"` property to `dist/index.js` since we won't be running anything from `/src`. Let's also add some scripts to enable building and running our bot code:
 ```json
 "scripts": {
-    "dev": "nodemon --watch 'src/**/*' --exec 'ts-node' src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "debug": "node --inspect dist/index.js"
@@ -185,7 +184,6 @@ Your `package.json` should look like this now:
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "nodemon --watch 'src/**/*' --exec 'ts-node' src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "debug": "node --inspect dist/index.js"
