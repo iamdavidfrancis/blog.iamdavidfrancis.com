@@ -7,9 +7,9 @@ categories: ["development"]
 tags: ["js", "docker"]
 ---
 
-> Update 2020-04-13: I realized that the Docker base image was over 500MB, which feels like too much for a bot this simple, so I switched the Docker base image to an alpine based version of node.
-
 Ever want to make a Discord Bot and have no idea where to get started? Yeah me too. So I spent most of a night looking into making one and setting it up in a Docker container. Some people thought it was an interesting idea, so here's a write up. This post might get a little long, so I may split it up into a couple of posts. 
+
+> Update 2020-04-13: I realized that the Docker base image was over 500MB, which feels like too much for a bot this simple, so I switched the Docker base image to an alpine based version of node.
 
 ## The Basic Idea (A.K.A. What is this and why do I care?)
 
