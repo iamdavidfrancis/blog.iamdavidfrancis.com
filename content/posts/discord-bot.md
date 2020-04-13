@@ -310,7 +310,7 @@ Now we're ready to start working on the Docker Image.
 
 The first step to creating the Docker image will be to add a Dockerfile. Lets create a `Dockerfile` at the root of our `discord-bot` folder. Set the content of the Dockerfile to this:
 
-```Dockerfile
+```
 FROM node:lts
 
 USER root
@@ -335,13 +335,13 @@ CMD [ "node", "dist/index.js" ]
 
 Let's break down what we're doing in there. We start with setting the base image to `node:lts` to get the current LTS nodejs in our container.
 
-```Dockerfile
+```
 USER root
 ENV APP /usr/src/APP
 ```
 Here we're setting the user to run as and adding an environment variable with the path we're installing the bot to.
 
-```Dockerfile
+```
 COPY package.json /tmp/package.json
 
 RUN cd /tmp && npm install --loglevel=warn \
@@ -351,7 +351,7 @@ RUN cd /tmp && npm install --loglevel=warn \
 
 This is copying the `package.json` into a temp folder to run an `npm install` to download our dependencies. Then it copies the dependencies into our `$APP` directory. 
 
-```Dockerfile
+```
 COPY src $APP/src
 COPY package.json $APP
 COPY tsconfig.json $APP
@@ -361,7 +361,7 @@ WORKDIR $APP
 
 This is copying app files into the final directory and moving our working directory there.
 
-```Dockerfile
+```
 RUN npm run build
 
 CMD [ "node", "dist/index.js" ]
