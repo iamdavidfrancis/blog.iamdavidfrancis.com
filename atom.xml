@@ -4,7 +4,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us">
     <title type="text">My Blog. Sorry.</title>
     <subtitle type="html">David Francis&#39;s personal blog. Follow if you&#39;re bored I guess.</subtitle>
-    <updated>2020-04-13T06:56:19+00:00</updated>
+    <updated>2020-04-13T23:29:38+00:00</updated>
     <id>https://blog.iamdavidfrancis.com/</id>
     <link rel="alternate" type="text/html" href="https://blog.iamdavidfrancis.com/" />
     <link rel="self" type="application/atom+xml" href="https://blog.iamdavidfrancis.com/atom.xml" />
@@ -20,7 +20,7 @@
             <title type="text">Creating a Discord Bot with Docker</title>
             <link rel="alternate" type="text/html" href="https://blog.iamdavidfrancis.com/posts/discord-bot/" />
             <id>https://blog.iamdavidfrancis.com/posts/discord-bot/</id>
-            <updated>2020-04-12T23:52:51-07:00</updated>
+            <updated>2020-04-13T16:28:29-07:00</updated>
             <published>2020-04-11T19:11:39-07:00</published>
             <author>
                     <name>David Francis</name>
@@ -30,6 +30,9 @@
             <summary type="html"><![CDATA[Ever want to make a Discord Bot and have no idea where to get started? Yeah me too. So I spent most of a night looking into making one and setting it up in a Docker container. Some people thought it was an interesting idea, so here&rsquo;s a write up.]]></summary>
             
                 <content type="html"><![CDATA[<p>Ever want to make a Discord Bot and have no idea where to get started? Yeah me too. So I spent most of a night looking into making one and setting it up in a Docker container. Some people thought it was an interesting idea, so here&rsquo;s a write up. This post might get a little long, so I may split it up into a couple of posts.</p>
+<blockquote>
+<p>Update 2020-04-13: I realized that the Docker base image was over 500MB, which feels like too much for a bot this simple, so I switched the Docker base image to an alpine based version of node.</p>
+</blockquote>
 <h2 id="the-basic-idea-aka-what-is-this-and-why-do-i-care">The Basic Idea (A.K.A. What is this and why do I care?)</h2>
 <p>Discord bots are neat. They do all kinds of things and I&rsquo;ve always wondered how they were implemented. So today we&rsquo;re going to build one together. Well, I&rsquo;m going to build one and explain how along they way. Well, I actually already built it, but I&rsquo;m building it again to explain it. Well, if you&rsquo;re reading this that means I already finished building it twice, so I guess now it&rsquo;s just you building it. At least you have my commentary to help! Unless my commentary is not useful, in which case, IDK there are other blogs explaining this, so go look at one of those.</p>
 <p>Sorry, that was a long winded way of saying nothing. Anyway, here&rsquo;s the plan. We&rsquo;re going to make a bot that will listen on Discord and if someone says &ldquo;Ping&rdquo; it will reply with &ldquo;Pong&rdquo;. We&rsquo;re going to go through the entire process of setting up the bot in Discord, writing the code, turning it into a docker image, pushing the image to Azure Container Registry and then running the docker image on a machine somewhere.</p>
@@ -459,7 +462,7 @@ Logged in as Sample Application#2809.
 <p>Now we&rsquo;re ready to start working on the Docker Image.</p>
 <h2 id="3-create-the-docker-image">3. Create the Docker Image</h2>
 <p>The first step to creating the Docker image will be to add a Dockerfile. Lets create a <code>Dockerfile</code> at the root of our <code>discord-bot</code> folder. Set the content of the Dockerfile to this:</p>
-<pre><code>FROM node:lts
+<pre><code>FROM node:lts-alpine3.9
 
 USER root
 ENV APP /usr/src/APP
@@ -479,7 +482,7 @@ WORKDIR $APP
 RUN npm run build
 
 CMD [ &quot;node&quot;, &quot;dist/index.js&quot; ]
-</code></pre><p>Let&rsquo;s break down what we&rsquo;re doing in there. We start with setting the base image to <code>node:lts</code> to get the current LTS nodejs in our container.</p>
+</code></pre><p>Let&rsquo;s break down what we&rsquo;re doing in there. We start with setting the base image to <code>node:lts-alpine3.9</code> to get the current LTS nodejs in our container. We&rsquo;re using an alpine linux based image, which is much smaller while still giving us everything we need.</p>
 <pre><code>USER root
 ENV APP /usr/src/APP
 </code></pre><p>Here we&rsquo;re setting the user to run as and adding an environment variable with the path we&rsquo;re installing the bot to.</p>
