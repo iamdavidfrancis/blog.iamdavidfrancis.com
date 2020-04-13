@@ -7,6 +7,8 @@ categories: ["development"]
 tags: ["js", "docker"]
 ---
 
+> Update 2020-04-13: I realized that the Docker base image was over 500MB, which feels like too much for a bot this simple, so I switched the Docker base image to an alpine based version of node.
+
 Ever want to make a Discord Bot and have no idea where to get started? Yeah me too. So I spent most of a night looking into making one and setting it up in a Docker container. Some people thought it was an interesting idea, so here's a write up. This post might get a little long, so I may split it up into a couple of posts. 
 
 ## The Basic Idea (A.K.A. What is this and why do I care?)
@@ -311,7 +313,7 @@ Now we're ready to start working on the Docker Image.
 The first step to creating the Docker image will be to add a Dockerfile. Lets create a `Dockerfile` at the root of our `discord-bot` folder. Set the content of the Dockerfile to this:
 
 ```
-FROM node:lts
+FROM node:lts-alpine3.9
 
 USER root
 ENV APP /usr/src/APP
@@ -333,7 +335,7 @@ RUN npm run build
 CMD [ "node", "dist/index.js" ]
 ```
 
-Let's break down what we're doing in there. We start with setting the base image to `node:lts` to get the current LTS nodejs in our container.
+Let's break down what we're doing in there. We start with setting the base image to `node:lts-alpine3.9` to get the current LTS nodejs in our container. We're using an alpine linux based image, which is much smaller while still giving us everything we need.
 
 ```
 USER root
