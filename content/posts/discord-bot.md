@@ -98,7 +98,7 @@ npx tsc --init --rootDir src --outDir dist --target es6 --esModuleInterop --reso
 
 This will setup our `tsconfig.json` with some useful defaults. It will look like this:
 
-```json
+```js
 {
   "compilerOptions": {
     /* Basic Options */
@@ -169,7 +169,7 @@ This will setup our `tsconfig.json` with some useful defaults. It will look like
 ```
 
 Now that this is done, we can make a few changes to `package.json` to enable some easier testing and running. Let's update the `"main"` property to `dist/index.js` since we won't be running anything from `/src`. Let's also add some scripts to enable building and running our bot code:
-```json
+```json {linenostart=6}
 "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
@@ -239,7 +239,7 @@ The `client` is actually the magic that will connect to Discord and calls into o
 
 The call to `client.login(discordToken)` will initiate the connection to Discord. At this point, we can add some logging into the `onReady` handler and see what happens when we run it. Update the code with the following:
 
-```ts
+```ts {linenostart=8}
 const onReady = () => {
     console.log("Connected");
     
@@ -289,7 +289,7 @@ Now that we are connected to Discord, we can implement our message handling. As 
 
 In our `onMessage` method let's add our new code:
 
-```ts
+```ts {linenostart=15}
 const onMessage = (message: Discord.Message) => { 
     // Don't respond to bots.
     if (message.author.bot) {
@@ -312,7 +312,7 @@ Now we're ready to start working on the Docker Image.
 
 The first step to creating the Docker image will be to add a Dockerfile. Lets create a `Dockerfile` at the root of our `discord-bot` folder. Set the content of the Dockerfile to this:
 
-```
+```dockerfile
 FROM node:lts-alpine3.9
 
 USER root
@@ -337,13 +337,13 @@ CMD [ "node", "dist/index.js" ]
 
 Let's break down what we're doing in there. We start with setting the base image to `node:lts-alpine3.9` to get the current LTS nodejs in our container. We're using an alpine linux based image, which is much smaller while still giving us everything we need.
 
-```
+```dockerfile {linenostart=3}
 USER root
 ENV APP /usr/src/APP
 ```
 Here we're setting the user to run as and adding an environment variable with the path we're installing the bot to.
 
-```
+```dockerfile {linenostart=6}
 COPY package.json /tmp/package.json
 
 RUN cd /tmp && npm install --loglevel=warn \
@@ -353,7 +353,7 @@ RUN cd /tmp && npm install --loglevel=warn \
 
 This is copying the `package.json` into a temp folder to run an `npm install` to download our dependencies. Then it copies the dependencies into our `$APP` directory. 
 
-```
+```dockerfile {linenostart=12}
 COPY src $APP/src
 COPY package.json $APP
 COPY tsconfig.json $APP
@@ -363,7 +363,7 @@ WORKDIR $APP
 
 This is copying app files into the final directory and moving our working directory there.
 
-```
+```dockerfile {linenostart=18}
 RUN npm run build
 
 CMD [ "node", "dist/index.js" ]
@@ -371,13 +371,13 @@ CMD [ "node", "dist/index.js" ]
 
 This builds the bot and then runs it. Now let's actually build our docker image. Go ahead and run this command:
 
-```powershell
+```ps1
 docker build . -t discord-bot
 ```
 
 This will build the image and tag it with `discord-bot`. You can you another tag if you like. Now you can try running your docker image. Remember to pass in your token via the `-e` flag. Here's what my command looks like: 
 
-```powershell
+```ps1
 docker run -e DISCORD_TOKEN=$env:DISCORD_TOKEN docker-bot
 ```
 
@@ -387,15 +387,15 @@ To deploy the container off of your local machine, you first need to push it to 
 
 Since I'm using ACR for this, I need to tag my image a little differently, so I'm going to run these commands to push it:
 
-```
+```ps1
 docker tag discord-bot mysupercoolregistry.azurecr.io/discord-bot
 docker push mysupercoolregistry.azurecr.io/discord-bot:latest
 ```
 
 Now that it's deployed, I can go to my Docker VM host and run the following command to run the image:
 
-```
-docker run -e DISCORD_TOKEN='<SecretToken>' --restart unless-stopped mysupercoolregistry.azurecr.io/discord-bot:latest
+```ps1
+docker run -e DISCORD_TOKEN="$env:DISCORD_TOKEN" --restart unless-stopped mysupercoolregistry.azurecr.io/discord-bot:latest
 ```
 
 And that's it, we're all set up and running. The bot will always run unless I manually turn it off in Docker. Thanks for reading all the way through. If I feel like it, I'll put up a blog post about how I set up CI/CD to deploy new updates to ACR using Azure DevOps Pipelines and GitHub.
