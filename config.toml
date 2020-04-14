@@ -31,7 +31,7 @@ enableEmoji = false
 footnoteReturnLinkContents = "↩"
 
 # Enable `.GitInfo` object for each page?
-enableGitInfo = false
+enableGitInfo = true
 
 # Enable generation of `robots.txt` file?
 enableRobotsTXT = true
@@ -1062,27 +1062,27 @@ uglyURLs = false
     ######################################
     # Post Gitinfo
 
-    enablePostGitInfo = false
+    enablePostGitInfo = true
 
-    displayPostGitInfo = false
+    displayPostGitInfo = true
     # Note: *global settings*
     #       `gitinfo` in post’s Front Matter
     #       has a higher priority than here
 
     repoURL = "https://github.com/iamdavidfrancis/blog.iamdavidfrancis.com"
-    repoEditURL = ""
+    repoEditURL = "https://github.com/iamdavidfrancis/blog.iamdavidfrancis.com/blob/master"
 
     gitIcon = "code-branch"
     displayCommitHash = true
 
-    displayCommitMessage = true
+    displayCommitMessage = false
     msgIcon = "info"
 
     displayFeedback = true
     feedbackIcon = "question"
     feedbackText = "Feedback"
 
-    displayEditLink = true
+    displayEditLink = false
     editIcon = "edit"
     editText = "Edit Me?"
 
@@ -1190,11 +1190,11 @@ uglyURLs = false
 
     displayCopyrightSymbol = true
 
-    displaySiteCreatedYear = true
+    displaySiteCreatedYear = false
 
     # Leave it empty("") if you don’t want
     # the icon
-    iconBetweenYearAndAuthor = ""
+    iconBetweenYearAndAuthor = "heart"
     iconColor = "#f06292"
     # Enable heartbeat animation?
     iconAnimation = true
