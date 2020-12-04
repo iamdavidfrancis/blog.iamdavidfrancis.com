@@ -10,7 +10,7 @@
         <title>My Blog. Sorry.</title>
         <link>https://blog.iamdavidfrancis.com/</link>
         <description>David Francis&#39;s personal blog. Follow if you&#39;re bored I guess.</description>
-        <generator>Hugo 0.69.0 https://gohugo.io/</generator>
+        <generator>Hugo 0.79.0 https://gohugo.io/</generator>
         
             <language>en-us</language>
         
@@ -21,7 +21,7 @@
             <webMaster>david@iamdavidfrancis.com (David Francis)</webMaster>
         
         
-        <lastBuildDate>Tue, 14 Apr 2020 10:30:28 +0000</lastBuildDate>
+        <lastBuildDate>Fri, 04 Dec 2020 10:53:18 +0000</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://blog.iamdavidfrancis.com/rss.xml" />
         
@@ -269,10 +269,10 @@
 </div><p>Now that this is done, we can make a few changes to <code>package.json</code> to enable some easier testing and running. Let&rsquo;s update the <code>&quot;main&quot;</code> property to <code>dist/index.js</code> since we won&rsquo;t be running anything from <code>/src</code>. Let&rsquo;s also add some scripts to enable building and running our bot code:</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">6
-</span><span class="lnt">7
-</span><span class="lnt">8
-</span><span class="lnt">9
+<pre class="chroma"><code><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
 </span><span class="lnt">10
 </span></code></pre></td>
 <td class="lntd">
@@ -358,7 +358,7 @@
 </span><span class="lnt">22
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-ts" data-lang="ts"><span class="kr">import</span> <span class="nx">Discord</span> <span class="nx">from</span> <span class="s2">&#34;discord.js&#34;</span><span class="p">;</span>
+<pre class="chroma"><code class="language-ts" data-lang="ts"><span class="kr">import</span> <span class="nx">Discord</span> <span class="kr">from</span> <span class="s2">&#34;discord.js&#34;</span><span class="p">;</span>
 
 <span class="c1">// Discord token is required.
 </span><span class="c1"></span><span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">DISCORD_TOKEN</span><span class="p">)</span> <span class="p">{</span>
@@ -388,8 +388,8 @@
 <p>The call to <code>client.login(discordToken)</code> will initiate the connection to Discord. At this point, we can add some logging into the <code>onReady</code> handler and see what happens when we run it. Update the code with the following:</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">8
-</span><span class="lnt">9
+<pre class="chroma"><code><span class="lnt"> 8
+</span><span class="lnt"> 9
 </span><span class="lnt">10
 </span><span class="lnt">11
 </span><span class="lnt">12
@@ -493,26 +493,26 @@ Logged in as Sample Application#2809.
 </span><span class="lnt">20
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-dockerfile" data-lang="dockerfile"><span class="k">FROM</span><span class="s"> node:lts-alpine3.9</span><span class="err">
-</span><span class="err"></span><span class="err">
-</span><span class="err"></span><span class="k">USER</span><span class="s"> root</span><span class="err">
-</span><span class="err"></span><span class="k">ENV</span> APP /usr/src/APP<span class="err">
-</span><span class="err"></span><span class="err">
-</span><span class="err"></span><span class="k">COPY</span> package.json /tmp/package.json<span class="err">
-</span><span class="err"></span><span class="err">
-</span><span class="err"></span><span class="k">RUN</span> <span class="nb">cd</span> /tmp <span class="o">&amp;&amp;</span> npm install --loglevel<span class="o">=</span>warn <span class="se">\</span><span class="err">
-</span><span class="err"></span>    <span class="o">&amp;&amp;</span> mkdir -p <span class="nv">$APP</span> <span class="se">\</span><span class="err">
-</span><span class="err"></span>    <span class="o">&amp;&amp;</span> mv /tmp/node_modules <span class="nv">$APP</span><span class="err">
-</span><span class="err"></span><span class="err">
-</span><span class="err"></span><span class="k">COPY</span> src <span class="nv">$APP</span>/src<span class="err">
-</span><span class="err"></span><span class="k">COPY</span> package.json <span class="nv">$APP</span><span class="err">
-</span><span class="err"></span><span class="k">COPY</span> tsconfig.json <span class="nv">$APP</span><span class="err">
-</span><span class="err"></span><span class="err">
-</span><span class="err"></span><span class="k">WORKDIR</span><span class="s"> $APP</span><span class="err">
-</span><span class="err"></span><span class="err">
-</span><span class="err"></span><span class="k">RUN</span> npm run build<span class="err">
-</span><span class="err"></span><span class="err">
-</span><span class="err"></span><span class="k">CMD</span> <span class="p">[</span> <span class="s2">&#34;node&#34;</span><span class="p">,</span> <span class="s2">&#34;dist/index.js&#34;</span> <span class="p">]</span><span class="err">
+<pre class="chroma"><code class="language-dockerfile" data-lang="dockerfile"><span class="k">FROM</span><span class="s"> node:lts-alpine3.9</span><span class="err">
+</span><span class="err">
+</span><span class="err"></span><span class="k">USER</span><span class="s"> root</span><span class="err">
+</span><span class="err"></span><span class="k">ENV</span> APP /usr/src/APP<span class="err">
+</span><span class="err">
+</span><span class="err"></span><span class="k">COPY</span> package.json /tmp/package.json<span class="err">
+</span><span class="err">
+</span><span class="err"></span><span class="k">RUN</span> <span class="nb">cd</span> /tmp <span class="o">&amp;&amp;</span> npm install --loglevel<span class="o">=</span>warn <span class="se">\
+</span><span class="se"></span>    <span class="o">&amp;&amp;</span> mkdir -p <span class="nv">$APP</span> <span class="se">\
+</span><span class="se"></span>    <span class="o">&amp;&amp;</span> mv /tmp/node_modules <span class="nv">$APP</span><span class="err">
+</span><span class="err">
+</span><span class="err"></span><span class="k">COPY</span> src <span class="nv">$APP</span>/src<span class="err">
+</span><span class="err"></span><span class="k">COPY</span> package.json <span class="nv">$APP</span><span class="err">
+</span><span class="err"></span><span class="k">COPY</span> tsconfig.json <span class="nv">$APP</span><span class="err">
+</span><span class="err">
+</span><span class="err"></span><span class="k">WORKDIR</span><span class="s"> $APP</span><span class="err">
+</span><span class="err">
+</span><span class="err"></span><span class="k">RUN</span> npm run build<span class="err">
+</span><span class="err">
+</span><span class="err"></span><span class="k">CMD</span> <span class="p">[</span> <span class="s2">&#34;node&#34;</span><span class="p">,</span> <span class="s2">&#34;dist/index.js&#34;</span> <span class="p">]</span><span class="err">
 </span></code></pre></td></tr></table>
 </div>
 </div><p>Let&rsquo;s break down what we&rsquo;re doing in there. We start with setting the base image to <code>node:lts-alpine3.9</code> to get the current LTS nodejs in our container. We&rsquo;re using an alpine linux based image, which is much smaller while still giving us everything we need.</p>
@@ -522,25 +522,25 @@ Logged in as Sample Application#2809.
 </span><span class="lnt">4
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-dockerfile" data-lang="dockerfile"><span class="k">USER</span><span class="s"> root</span><span class="err">
-</span><span class="err"></span><span class="k">ENV</span> APP /usr/src/APP<span class="err">
+<pre class="chroma"><code class="language-dockerfile" data-lang="dockerfile"><span class="k">USER</span><span class="s"> root</span><span class="err">
+</span><span class="err"></span><span class="k">ENV</span> APP /usr/src/APP<span class="err">
 </span></code></pre></td></tr></table>
 </div>
 </div><p>Here we&rsquo;re setting the user to run as and adding an environment variable with the path we&rsquo;re installing the bot to.</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><code><span class="lnt">6
-</span><span class="lnt">7
-</span><span class="lnt">8
-</span><span class="lnt">9
+<pre class="chroma"><code><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
 </span><span class="lnt">10
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-dockerfile" data-lang="dockerfile"><span class="k">COPY</span> package.json /tmp/package.json<span class="err">
-</span><span class="err"></span><span class="err">
-</span><span class="err"></span><span class="k">RUN</span> <span class="nb">cd</span> /tmp <span class="o">&amp;&amp;</span> npm install --loglevel<span class="o">=</span>warn <span class="se">\</span><span class="err">
-</span><span class="err"></span>    <span class="o">&amp;&amp;</span> mkdir -p <span class="nv">$APP</span> <span class="se">\</span><span class="err">
-</span><span class="err"></span>    <span class="o">&amp;&amp;</span> mv /tmp/node_modules <span class="nv">$APP</span><span class="err">
+<pre class="chroma"><code class="language-dockerfile" data-lang="dockerfile"><span class="k">COPY</span> package.json /tmp/package.json<span class="err">
+</span><span class="err">
+</span><span class="err"></span><span class="k">RUN</span> <span class="nb">cd</span> /tmp <span class="o">&amp;&amp;</span> npm install --loglevel<span class="o">=</span>warn <span class="se">\
+</span><span class="se"></span>    <span class="o">&amp;&amp;</span> mkdir -p <span class="nv">$APP</span> <span class="se">\
+</span><span class="se"></span>    <span class="o">&amp;&amp;</span> mv /tmp/node_modules <span class="nv">$APP</span><span class="err">
 </span></code></pre></td></tr></table>
 </div>
 </div><p>This is copying the <code>package.json</code> into a temp folder to run an <code>npm install</code> to download our dependencies. Then it copies the dependencies into our <code>$APP</code> directory.</p>
@@ -553,11 +553,11 @@ Logged in as Sample Application#2809.
 </span><span class="lnt">16
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-dockerfile" data-lang="dockerfile"><span class="k">COPY</span> src <span class="nv">$APP</span>/src<span class="err">
-</span><span class="err"></span><span class="k">COPY</span> package.json <span class="nv">$APP</span><span class="err">
-</span><span class="err"></span><span class="k">COPY</span> tsconfig.json <span class="nv">$APP</span><span class="err">
-</span><span class="err"></span><span class="err">
-</span><span class="err"></span><span class="k">WORKDIR</span><span class="s"> $APP</span><span class="err">
+<pre class="chroma"><code class="language-dockerfile" data-lang="dockerfile"><span class="k">COPY</span> src <span class="nv">$APP</span>/src<span class="err">
+</span><span class="err"></span><span class="k">COPY</span> package.json <span class="nv">$APP</span><span class="err">
+</span><span class="err"></span><span class="k">COPY</span> tsconfig.json <span class="nv">$APP</span><span class="err">
+</span><span class="err">
+</span><span class="err"></span><span class="k">WORKDIR</span><span class="s"> $APP</span><span class="err">
 </span></code></pre></td></tr></table>
 </div>
 </div><p>This is copying app files into the final directory and moving our working directory there.</p>
@@ -568,9 +568,9 @@ Logged in as Sample Application#2809.
 </span><span class="lnt">20
 </span></code></pre></td>
 <td class="lntd">
-<pre class="chroma"><code class="language-dockerfile" data-lang="dockerfile"><span class="k">RUN</span> npm run build<span class="err">
-</span><span class="err"></span><span class="err">
-</span><span class="err"></span><span class="k">CMD</span> <span class="p">[</span> <span class="s2">&#34;node&#34;</span><span class="p">,</span> <span class="s2">&#34;dist/index.js&#34;</span> <span class="p">]</span><span class="err">
+<pre class="chroma"><code class="language-dockerfile" data-lang="dockerfile"><span class="k">RUN</span> npm run build<span class="err">
+</span><span class="err">
+</span><span class="err"></span><span class="k">CMD</span> <span class="p">[</span> <span class="s2">&#34;node&#34;</span><span class="p">,</span> <span class="s2">&#34;dist/index.js&#34;</span> <span class="p">]</span><span class="err">
 </span></code></pre></td></tr></table>
 </div>
 </div><p>This builds the bot and then runs it. Now let&rsquo;s actually build our docker image. Go ahead and run this command:</p>
