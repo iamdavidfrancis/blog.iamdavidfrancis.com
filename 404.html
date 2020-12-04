@@ -4,35 +4,6 @@
     <meta charset="UTF-8" />
 
     <meta name="generator" content="Hugo 0.79.0" /><meta name="theme-color" content="#fff" />
-        <script>
-            const userPrefers = localStorage.getItem('theme');
-            const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            const lightModeMediaQuery = window.matchMedia('(prefers-color-scheme: light)');
-            if (userPrefers === 'dark') {
-                changeModeMeta('dark');
-            } else if (userPrefers === 'light') {
-                changeModeMeta('light');
-            } else if (darkModeMediaQuery.matches) {
-                changeModeMeta('dark');
-            } else if (lightModeMediaQuery.matches) {
-                changeModeMeta('light');
-            }
-            function changeModeMeta(theme) {
-                document.documentElement.setAttribute('data-theme', theme);
-                if (theme === 'dark') {
-                    changeThemeColor('#16171d');
-                } else {
-                    changeThemeColor('#fff');
-                }
-            }
-            function changeThemeColor(themeColor) {
-                document.querySelector('meta[name="theme-color"]').setAttribute('content', themeColor);
-            }
-        </script>
-
-    
-
-    
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
@@ -43,15 +14,17 @@
 
     <title>404 Page not found | My Blog. Sorry.</title>
 
-    <link rel="stylesheet" href="/css/meme.min.0cc86cea737bb9479b137507aaf6532bfed4d1f4cbab1f1204940e27b8fccc8e.css" integrity="sha256-DMhs6nN7uUebE3UHqvZTK/7U0fTLqx8SBJQOJ7j8zI4=" />
+    <link rel="stylesheet" href="/css/meme.min.8f61b435bd657856201261304747c60b40a9ea841c78c32a59f274572782c2e1.css"/>
+
+    
+    
 
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM&#43;Plex&#43;Serif:ital,wght@0,400;0,500;0,700;1,400;1,700&amp;family=Source&#43;Code&#43;Pro:ital,wght@0,400;0,700;1,400;1,700&amp;family=Comfortaa:wght@700&amp;display=swap" media="print" onload="this.media='all'" />
         <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM&#43;Plex&#43;Serif:ital,wght@0,400;0,500;0,700;1,400;1,700&amp;family=Source&#43;Code&#43;Pro:ital,wght@0,400;0,700;1,400;1,700&amp;family=Comfortaa:wght@700&amp;display=swap" /></noscript>
 
-    <meta name="author" content="David Francis" />
-    <meta name="description" content="David Francis&#39;s personal blog. Follow if you&#39;re bored I guess." />
+    <meta name="author" content="David Francis" /><meta name="description" content="David Francis&#39;s personal blog. Follow if you&#39;re bored I guess." />
 
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
     <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#2a6df4" />
@@ -71,8 +44,7 @@
 
     
     <link rel="canonical" href="https://blog.iamdavidfrancis.com/404.html" />
-
-
+    
 
 <script type="application/ld+json">
     {
@@ -102,16 +74,12 @@
 
     
 
-
-
 <meta name="twitter:card" content="summary" />
 
 <meta name="twitter:site" content="@iamdavidfrancis" />
 <meta name="twitter:creator" content="@iamdavidfrancis" />
 
     
-
-
 
 
 
