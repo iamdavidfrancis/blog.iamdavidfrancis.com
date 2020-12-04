@@ -21,7 +21,7 @@
             <webMaster>david@iamdavidfrancis.com (David Francis)</webMaster>
         
         
-        <lastBuildDate>Fri, 04 Dec 2020 11:17:41 +0000</lastBuildDate>
+        <lastBuildDate>Fri, 04 Dec 2020 11:26:09 +0000</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://blog.iamdavidfrancis.com/rss.xml" />
         
@@ -305,7 +305,7 @@
 <pre class="chroma"><code class="language-cs" data-lang="cs"><span class="n">services</span><span class="p">.</span><span class="n">AddSingleton</span><span class="p">&lt;</span><span class="n">CustomAuthorizeFilter</span><span class="p">&gt;();</span>
 </code></pre></td></tr></table>
 </div>
-</div><p>This would register it as a Singleton, meaning only one instance will ever be created. You can register it with whatever scope fits your needs.</p>
+</div><p>This would register it as a Singleton, meaning only one instance will ever be created. You can register it with whatever scope fits your needs. Now you might be thinking, &ldquo;Hey David, that&rsquo;s just a normal service being added to the DI container and then using the <code>ServiceFilterAttribute</code> to wire the attribute up.&rdquo; You would be 100% correct, that is exactly what we&rsquo;re doing here. Technically you could inject any Service like this, but it really only makes sense to inject something that implements <code>IFilterMetadata</code> so that the framework can do its magic and run the code.</p>
 <h3 id="servicefilter-benefits-and-downsides">ServiceFilter Benefits and Downsides.</h3>
 <p>The <code>ServiceFilter</code> gives us the added advantage of using a Filter registered in the DI container, saving us the overhead of creating an instance per-request. The main downside is losing the ability to pass in arguments from the Attribute like <code>TypeFilter</code> gives us.</p>
 <h2 id="conclusion">Conclusion</h2>

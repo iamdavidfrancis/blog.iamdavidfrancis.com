@@ -4,7 +4,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us">
     <title type="text">My Blog. Sorry.</title>
     <subtitle type="html">David Francis&#39;s personal blog. Follow if you&#39;re bored I guess.</subtitle>
-    <updated>2020-12-04T11:17:41+00:00</updated>
+    <updated>2020-12-04T11:26:09+00:00</updated>
     <id>https://blog.iamdavidfrancis.com/</id>
     <link rel="alternate" type="text/html" href="https://blog.iamdavidfrancis.com/" />
     <link rel="self" type="application/atom+xml" href="https://blog.iamdavidfrancis.com/atom.xml" />
@@ -20,7 +20,7 @@
             <title type="text">Using Dependency Injection in Asp.Net Core Filters &amp; Attributes</title>
             <link rel="alternate" type="text/html" href="https://blog.iamdavidfrancis.com/posts/aspnet-filter-dependency-injection/" />
             <id>https://blog.iamdavidfrancis.com/posts/aspnet-filter-dependency-injection/</id>
-            <updated>2020-12-04T03:16:25-08:00</updated>
+            <updated>2020-12-04T03:22:07-08:00</updated>
             <published>2020-12-04T01:41:00-08:00</published>
             <author>
                     <name>David Francis</name>
@@ -298,7 +298,7 @@
 <pre class="chroma"><code class="language-cs" data-lang="cs"><span class="n">services</span><span class="p">.</span><span class="n">AddSingleton</span><span class="p">&lt;</span><span class="n">CustomAuthorizeFilter</span><span class="p">&gt;();</span>
 </code></pre></td></tr></table>
 </div>
-</div><p>This would register it as a Singleton, meaning only one instance will ever be created. You can register it with whatever scope fits your needs.</p>
+</div><p>This would register it as a Singleton, meaning only one instance will ever be created. You can register it with whatever scope fits your needs. Now you might be thinking, &ldquo;Hey David, that&rsquo;s just a normal service being added to the DI container and then using the <code>ServiceFilterAttribute</code> to wire the attribute up.&rdquo; You would be 100% correct, that is exactly what we&rsquo;re doing here. Technically you could inject any Service like this, but it really only makes sense to inject something that implements <code>IFilterMetadata</code> so that the framework can do its magic and run the code.</p>
 <h3 id="servicefilter-benefits-and-downsides">ServiceFilter Benefits and Downsides.</h3>
 <p>The <code>ServiceFilter</code> gives us the added advantage of using a Filter registered in the DI container, saving us the overhead of creating an instance per-request. The main downside is losing the ability to pass in arguments from the Attribute like <code>TypeFilter</code> gives us.</p>
 <h2 id="conclusion">Conclusion</h2>
