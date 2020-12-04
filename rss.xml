@@ -21,7 +21,7 @@
             <webMaster>david@iamdavidfrancis.com (David Francis)</webMaster>
         
         
-        <lastBuildDate>Fri, 04 Dec 2020 22:01:09 +0000</lastBuildDate>
+        <lastBuildDate>Fri, 04 Dec 2020 22:07:58 +0000</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://blog.iamdavidfrancis.com/rss.xml" />
         
@@ -42,6 +42,8 @@
 <h2 id="cicd-plan">CI/CD Plan</h2>
 <p>My goal was to have as much of the process be automated as possible. Once I push the commit to GitHub, everything else should happen automatically. The idea is to have the commit to <code>main</code> trigger an automated build in Azure Pipelines, then once the build finishes, have it trigger an automated Release that will push the build contents as a commit to the <code>gh-pages</code> branch. I also have some scripts that will invalidate the CloudFlare caches to ensure users get a fresh copy of the site when they load it after I deploy, but that&rsquo;s out of scope for this post.</p>
 <h2 id="setting-up-azure-pipelines-to-build-on-new-commits">Setting up Azure Pipelines to Build on New Commits</h2>
+<h3 id="adding-the-hugo-extension">Adding the Hugo Extension</h3>
+<p>If you don&rsquo;t already have the hugo extension installed to your Azure DevOps, you can do that <a href="https://marketplace.visualstudio.com/items?itemName=giuliovdev.hugo-extension">here</a>. Just click the &ldquo;Get it free&rdquo; button and go through the steps to install it.</p>
 <h3 id="connecting-to-github">Connecting to GitHub</h3>
 <p>The first thing we need to do, is set up a new Pipeline to build the static site. In the Azure DevOps project, we&rsquo;ll clink on &ldquo;Pipelines&rdquo;, then the &ldquo;New Pipeline&rdquo; button. That will bring us to the &ldquo;Connect&rdquo; tab of the New Pipeline flow.</p>
 <p><img src="/images/posts/hugo-static-site-github-azure-devops/new-pipeline-connect.png" alt="New Pipeline Connect Tab"></p>
@@ -99,9 +101,7 @@
 </span><span class="w">  </span><span class="nt">displayName</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;Run a multi-line script&#39;</span><span class="w">
 </span></code></pre></td></tr></table>
 </div>
-</div><h4 id="adding-the-hugo-extension">Adding the Hugo Extension</h4>
-<p>If you don&rsquo;t already have the hugo extension installed to your Azure DevOps, you can do that <a href="https://marketplace.visualstudio.com/items?itemName=giuliovdev.hugo-extension">here</a>. Just click the &ldquo;Get it free&rdquo; button and go through the steps to install it.</p>
-<h4 id="our-build-definition">Our Build Definition</h4>
+</div><h4 id="our-build-definition">Our Build Definition</h4>
 <p>We don&rsquo;t actually want most of this, so let&rsquo;s delete everything except:</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
@@ -291,6 +291,9 @@
 <p><img src="/images/posts/hugo-static-site-github-azure-devops/new-pipeline-build-steps.png" alt="New Pipeline Build Steps"></p>
 <p>Once the build succeeds, we know we&rsquo;re good to continue to make the Release.</p>
 <h2 id="setting-up-the-release-to-deploy-to-github-pages">Setting up the Release to deploy to GitHub Pages</h2>
+<h3 id="adding-the-github-pages-publish-extension">Adding the GitHub Pages Publish Extension</h3>
+<p>If you don&rsquo;t already have the extension installed to your Azure DevOps, you can do that <a href="https://marketplace.visualstudio.com/items?itemName=AccidentalFish.githubpages-publish">here</a>. Just click the &ldquo;Get it free&rdquo; button and go through the steps to install it.</p>
+<h3 id="creating-a-new-release">Creating a new Release</h3>
 <p>In the Azure DevOps project, we&rsquo;ll clink on &ldquo;Releases&rdquo;, then the &ldquo;New&rdquo; button, then &ldquo;New release pipeline&rdquo; from the dropdown. That will bring us to the &ldquo;New release pipeline&rdquo; page.</p>
 <p><img src="/images/posts/hugo-static-site-github-azure-devops/new-release-page.png" alt="New Release Pipeline Page"></p>
 <p>We&rsquo;re going to click on &ldquo;Empty job&rdquo; so we can add our deployment tasks manually. The first thing we&rsquo;ll do is name the stage, I called mine &ldquo;Deploy to GitHub Pages&rdquo;:</p>
@@ -303,8 +306,6 @@
 <p>Now we need to click the lightning bolt at the top right, and turn on the &ldquo;Continuous deployment trigger&rdquo;</p>
 <p><img src="/images/posts/hugo-static-site-github-azure-devops/new-release-artifact-continuous-trigger.png" alt="New Release Pipeline Page"></p>
 <h3 id="configure-deployment">Configure Deployment</h3>
-<h4 id="adding-the-github-pages-publish-extension">Adding the GitHub Pages Publish Extension</h4>
-<p>If you don&rsquo;t already have the extension installed to your Azure DevOps, you can do that <a href="https://marketplace.visualstudio.com/items?itemName=AccidentalFish.githubpages-publish">here</a>. Just click the &ldquo;Get it free&rdquo; button and go through the steps to install it.</p>
 <h4 id="github-personal-access-token">GitHub Personal Access Token</h4>
 <p>At this point, we&rsquo;ll need a GitHub Personal Access Token (PAT) so that we can commit the files back to the <code>gh-pages</code> branch. Instruction on how to generate a PAT can be found <a href="https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token">here</a>.</p>
 <p>We&rsquo;re going to add the PAT as a secure variable in the Release pipeline. To do that, we&rsquo;ll click into the &ldquo;Variables&rdquo; tab, then in the &ldquo;Pipeline variables&rdquo; section, we&rsquo;ll add a new variable called &ldquo;GitHubPAT&rdquo;. Make sure to toggle the padlock so that it stored as a secret. I set the Scope to the &ldquo;Deploy GitHub Pages&rdquo; stage to reduce the scope of access. It&rsquo;s always a good idea to restrict your variable scopes to just the stages that need them.</p>
