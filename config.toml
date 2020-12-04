@@ -135,17 +135,19 @@ uglyURLs = false
 [outputFormats.SectionsRSS]
     mediaType = "application/rss+xml"
     baseName = "rss"
+    
+# Search index for lunr.js
+[outputFormats.SearchIndex]
+    mediaType = "application/json"
+    baseName = "search"
 
 # Hugo’s output control
 [outputs]
-    page = ["HTML"]
-    home = ["HTML", "SectionsAtom", "SectionsRSS"]
+   page = ["HTML"]
+    home = ["HTML", "SectionsAtom", "SectionsRSS", "SearchIndex"]
     section = ["HTML"]
-    # Taxonomy
-    taxonomyTerm = ["HTML"]
-    # Taxonomy term
     taxonomy = ["HTML"]
-    # Note: https://github.com/gohugoio/hugo/issues/4528#issuecomment-508488859
+    term = ["HTML"]
 
 # Maximum number of items in the Atom & RSS feed
 [services.rss]
@@ -407,6 +409,11 @@ uglyURLs = false
     # category?
     displayPostsCount = true
 
+    # Set to a non-negative number to limit
+    # the number of posts displayed per
+    # category/section.
+    limitPostsLimit = -1
+
 
     ######################################
     # Tags Page
@@ -462,6 +469,11 @@ uglyURLs = false
     # Display count of posts in each
     # taxonomy term?
     displayTaxonomyTermCount = true
+
+    # Set to a non-negative number to limit
+    # the number of posts displayed per
+    # taxonomy term.
+    limitEntriesLimit = -1
 
 
     ######################################
@@ -581,8 +593,6 @@ uglyURLs = false
     #       environment
 
     enableServiceWorker = false
-    # Note: need third-party support, see
-    #       https://io-oi.me/tech/pwa-via-workbox/
 
 
     ######################################
@@ -613,6 +623,8 @@ uglyURLs = false
     #       `mermaid` in post’s Front Matter
     #       has a higher priority than here
 
+    mermaidTheme = 'default'
+    mermaidThemeDark = 'dark'
 
     ######################################
     # Comments
@@ -1070,7 +1082,7 @@ uglyURLs = false
     #       has a higher priority than here
 
     repoURL = "https://github.com/iamdavidfrancis/blog.iamdavidfrancis.com"
-    repoEditURL = "https://github.com/iamdavidfrancis/blog.iamdavidfrancis.com/blob/master"
+    repoEditURL = "https://github.com/iamdavidfrancis/blog.iamdavidfrancis.com/blob/main"
 
     gitIcon = "code-branch"
     displayCommitHash = true
