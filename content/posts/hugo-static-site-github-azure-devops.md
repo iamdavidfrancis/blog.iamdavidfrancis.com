@@ -19,6 +19,10 @@ My goal was to have as much of the process be automated as possible. Once I push
 
 ## Setting up Azure Pipelines to Build on New Commits
 
+### Adding the Hugo Extension
+
+If you don't already have the hugo extension installed to your Azure DevOps, you can do that [here](https://marketplace.visualstudio.com/items?itemName=giuliovdev.hugo-extension). Just click the "Get it free" button and go through the steps to install it.
+
 ### Connecting to GitHub
 
 The first thing we need to do, is set up a new Pipeline to build the static site. In the Azure DevOps project, we'll clink on "Pipelines", then the "New Pipeline" button. That will bring us to the "Connect" tab of the New Pipeline flow. 
@@ -66,10 +70,6 @@ steps:
     echo See https://aka.ms/yaml
   displayName: 'Run a multi-line script'
 ```
-
-#### Adding the Hugo Extension
-
-If you don't already have the hugo extension installed to your Azure DevOps, you can do that [here](https://marketplace.visualstudio.com/items?itemName=giuliovdev.hugo-extension). Just click the "Get it free" button and go through the steps to install it.
 
 #### Our Build Definition
 
@@ -205,6 +205,12 @@ Once the build succeeds, we know we're good to continue to make the Release.
 
 ## Setting up the Release to deploy to GitHub Pages
 
+### Adding the GitHub Pages Publish Extension
+
+If you don't already have the extension installed to your Azure DevOps, you can do that [here](https://marketplace.visualstudio.com/items?itemName=AccidentalFish.githubpages-publish). Just click the "Get it free" button and go through the steps to install it.
+
+### Creating a new Release
+
 In the Azure DevOps project, we'll clink on "Releases", then the "New" button, then "New release pipeline" from the dropdown. That will bring us to the "New release pipeline" page. 
 
 ![New Release Pipeline Page](/images/posts/hugo-static-site-github-azure-devops/new-release-page.png)
@@ -228,10 +234,6 @@ Now we need to click the lightning bolt at the top right, and turn on the "Conti
 ![New Release Pipeline Page](/images/posts/hugo-static-site-github-azure-devops/new-release-artifact-continuous-trigger.png)
 
 ### Configure Deployment
-
-#### Adding the GitHub Pages Publish Extension
-
-If you don't already have the extension installed to your Azure DevOps, you can do that [here](https://marketplace.visualstudio.com/items?itemName=AccidentalFish.githubpages-publish). Just click the "Get it free" button and go through the steps to install it.
 
 #### GitHub Personal Access Token
 
