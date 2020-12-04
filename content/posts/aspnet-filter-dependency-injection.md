@@ -7,7 +7,9 @@ categories: ["development"]
 tags: ["dotnet", "asp.net"]
 ---
 
-Sometimes when working with Asp.Net MVC or Web Apis, you'll want to add a Filter Attribute to a class or an endpoint. A common use case would be adding a custom Authorization filter. Usually these filters would be defined as:
+Sometimes when working with Asp.Net MVC or Web Apis, you'll want to add a Filter Attribute to a class or an endpoint. This can be an Authorization Filter, a Resource Filter, an Action Filter, etc. A common use case I have seen is adding a custom Authorization Filter. In this post, I'll go through some of the issues I've run into while trying to add Dependency Injection to a Filter. 
+
+Usually a custom filter would be implemented as:
 
 ```cs
 public class CustomAuthorizeAttribute: AuthorizeAttribute, IAuthorizationFilter
@@ -30,9 +32,9 @@ public async IActionResult GetItem(string id)
 }
 ```
 
-This allows us to move the authorization logic to a shared piece of code, to cut down on reuse and keep our controller endpoints clean. The big downside to this approach is that we can't use Dependency Injection. If we add a Constructor to the Attribute, we'll have to pass it a value when we define the controller. 
+This allows us to move the authorization logic to a shared piece of code, to cut down on reuse and keep our controller endpoints clean. The big downside to this approach is that we can't use Dependency Injection. If we add a constructor with arguments to the Attribute, we'll have to pass a value for those arguments when we add the attribute to a class/method. 
 
-Let's say we wanted to pass in an ILogger so we could capture telemetry in our Authorization code. In our Controller we could inject it:
+Let's say we wanted to pass in an `ILogger` so we could capture telemetry in our Authorization code. In our Controller we could inject it:
 
 ```cs
 public class SuperAwesomeController : ControllerBase
@@ -48,7 +50,7 @@ public class SuperAwesomeController : ControllerBase
 }
 ```
 
-But in our Attribute this won't work because we would need to pass in the logger when we use the attribute as a compile-time constant, which it can never be.  So now we need to come up with a solution that allows us to inject services from the DI container. Asp.Net Core actually gives us two ways to do this, each with their own advantages and disadvantages: the `TypeFilter` and the `ServiceFilter`.
+But in our Attribute this won't work because we would need to pass in the `ILogger` when we use the attribute and attribute arguments must be a compile-time constant, which it the `ILogger` can never be.  So now we need to come up with a solution that allows us to inject services from the DI container. Asp.Net Core actually gives us two ways to do this, each with their own advantages and disadvantages: the `TypeFilter` and the `ServiceFilter`.
 
 ## TypeFilters
 
@@ -175,5 +177,6 @@ Both `TypeFilter` and `ServiceFilter` give us powerful tools for creating custom
 
 ## References
 
+* https://docs.microsoft.com/en-us/aspnet/core/mvc/controllers/filters?view=aspnetcore-5.0
 * https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.typefilterattribute?view=aspnetcore-5.0
 * https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.servicefilterattribute?view=aspnetcore-5.0
