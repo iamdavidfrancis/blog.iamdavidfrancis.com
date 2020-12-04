@@ -27,6 +27,7 @@ stages:
       displayName: 'Generate Hugo site'
       inputs:
         destination: '$(Build.ArtifactStagingDirectory)'
+        baseURL: 'https://blog.iamdavidfrancis.com/'
     - task: PublishPipelineArtifact@0
       displayName: 'Publish Hugo site as an artifact'
       inputs:
