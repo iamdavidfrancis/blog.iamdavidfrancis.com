@@ -172,3 +172,8 @@ The `ServiceFilter` gives us the added advantage of using a Filter registered in
 ## Conclusion
 
 Both `TypeFilter` and `ServiceFilter` give us powerful tools for creating custom Attributes and Filters, along with the flexibility to choose the option that best suits our needs. Hopefully you found this post helpful and if you see any errors or issues, please reach out to me on [twitter](https://twitter.com/iamdavidfrancis). 
+
+## References
+
+* https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.typefilterattribute?view=aspnetcore-5.0
+* https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.servicefilterattribute?view=aspnetcore-5.0
