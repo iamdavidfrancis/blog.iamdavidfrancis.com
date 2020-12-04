@@ -4,7 +4,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us">
     <title type="text">My Blog. Sorry.</title>
     <subtitle type="html">David Francis&#39;s personal blog. Follow if you&#39;re bored I guess.</subtitle>
-    <updated>2020-12-04T11:26:09+00:00</updated>
+    <updated>2020-12-04T22:01:09+00:00</updated>
     <id>https://blog.iamdavidfrancis.com/</id>
     <link rel="alternate" type="text/html" href="https://blog.iamdavidfrancis.com/" />
     <link rel="self" type="application/atom+xml" href="https://blog.iamdavidfrancis.com/atom.xml" />
@@ -16,6 +16,387 @@
             </author>
     
     <generator uri="https://gohugo.io/" version="0.79.0">Hugo</generator>
+        <entry>
+            <title type="text">Building a GitHub Pages site using Hugo and Azure DevOps Pipelines</title>
+            <link rel="alternate" type="text/html" href="https://blog.iamdavidfrancis.com/posts/hugo-static-site-github-azure-devops/" />
+            <id>https://blog.iamdavidfrancis.com/posts/hugo-static-site-github-azure-devops/</id>
+            <updated>2020-12-04T13:59:49-08:00</updated>
+            <published>2020-12-04T11:46:37-08:00</published>
+            <author>
+                    <name>David Francis</name>
+                    <uri>https://iamdavidfrancis.com/</uri>
+                    <email>david@iamdavidfrancis.com</email>
+                    </author>
+            <summary type="html"><![CDATA[Since I built this blog using GitHub pages with Hugo, I thought I&rsquo;d share the process I used to automate the build and deployments. Since GitHub pages can only serve static sites, the only two options are to publish all the HTML/CSS/JS files to a branch or use a Jekyll theme (which GitHub has native support for).]]></summary>
+            
+                <content type="html"><![CDATA[<p>Since I built this blog using GitHub pages with Hugo, I thought I&rsquo;d share the process I used to automate the build and deployments. Since GitHub pages can only serve static sites, the only two options are to publish all the HTML/CSS/JS files to a branch or use a Jekyll theme (which GitHub has native support for). These are both great options, and I&rsquo;ve used both in the past, but I really like how Hugo&rsquo;s site generation and content system works.</p>
+<p>The downside to using Hugo? I&rsquo;d have to manually build the static content, and commit it to the <code>gh-pages</code> branch (Keeping <code>main</code> free to hold the source code that gets used by Hugo to generate the static site). I&rsquo;m not a huge fan of having to do a bunch of manual steps to publish something once I finish coding, so I figured now is the perfect time to get some practice with Continuous Integration/Continuous Deployment using Azure DevOps Pipelines.</p>
+<p>I&rsquo;ve already built the site in Hugo, got the static site defined in GitHub, and I&rsquo;m using CloudFlare in front of it for the CDN and caching. The post will assume you already have a GitHub repo with a Hugo site deployed to <code>gh-pages</code> with the source code in <code>main</code>. It will cover adding automated builds for generating the Hugo site so you don&rsquo;t have to do it manually.</p>
+<h2 id="cicd-plan">CI/CD Plan</h2>
+<p>My goal was to have as much of the process be automated as possible. Once I push the commit to GitHub, everything else should happen automatically. The idea is to have the commit to <code>main</code> trigger an automated build in Azure Pipelines, then once the build finishes, have it trigger an automated Release that will push the build contents as a commit to the <code>gh-pages</code> branch. I also have some scripts that will invalidate the CloudFlare caches to ensure users get a fresh copy of the site when they load it after I deploy, but that&rsquo;s out of scope for this post.</p>
+<h2 id="setting-up-azure-pipelines-to-build-on-new-commits">Setting up Azure Pipelines to Build on New Commits</h2>
+<h3 id="connecting-to-github">Connecting to GitHub</h3>
+<p>The first thing we need to do, is set up a new Pipeline to build the static site. In the Azure DevOps project, we&rsquo;ll clink on &ldquo;Pipelines&rdquo;, then the &ldquo;New Pipeline&rdquo; button. That will bring us to the &ldquo;Connect&rdquo; tab of the New Pipeline flow.</p>
+<p><img src="/images/posts/hugo-static-site-github-azure-devops/new-pipeline-connect.png" alt="New Pipeline Connect Tab"></p>
+<p>We&rsquo;ll click on the &ldquo;GitHub&rdquo; button, which will take us to GitHub to OAuth, so that Azure DevOps can connect to the GitHub repositories.</p>
+<h3 id="selecting-the-repository">Selecting the Repository</h3>
+<p>Once we get back to Azure DevOps, we&rsquo;ll be on the &ldquo;Select&rdquo; tab. From this tab, we need to choose the repository we want to connect to. In my case, I&rsquo;m choosing the blog&rsquo;s repo:</p>
+<p><img src="/images/posts/hugo-static-site-github-azure-devops/new-pipeline-select.png" alt="New Pipeline Select Tab"></p>
+<h3 id="configuring-the-pipeline">Configuring the Pipeline</h3>
+<p>After we click on the repo, we will go to the &ldquo;Configure&rdquo; tab. Lets use a &ldquo;Starter pipeline&rdquo; so we can add exactly what we&rsquo;re going to need.</p>
+<p><img src="/images/posts/hugo-static-site-github-azure-devops/new-pipeline-configure.png" alt="New Pipeline Configure Tab"></p>
+<h3 id="building-the-pipeline-yaml">Building the Pipeline YAML</h3>
+<p>Now that we&rsquo;ve chosen &ldquo;Starter pipeline&rdquo; we have arrived at the &ldquo;Review&rdquo; tab. Here&rsquo;s where we will see the YAML file that will be used for the build definition. This file will actually be checked into the <code>main</code> branch of our repository and is what Azure Pipelines will use on every build. The advantage to having the build definition as code in the repo is that if we need to change how we build, we can update a file in the same place as everything else. Pushing a commit to update the build is much easier than going to the Azure DevOps site and clicking through buttons to make changes.</p>
+<p>By default, the pipeline YAML file will look like this:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="c"># Starter pipeline</span><span class="w">
+</span><span class="w"></span><span class="c"># Start with a minimal pipeline that you can customize to build and deploy your code.</span><span class="w">
+</span><span class="w"></span><span class="c"># Add steps that build, run tests, deploy, and more:</span><span class="w">
+</span><span class="w"></span><span class="c"># https://aka.ms/yaml</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="nt">trigger</span><span class="p">:</span><span class="w">
+</span><span class="w"></span>- <span class="l">main</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="nt">pool</span><span class="p">:</span><span class="w">
+</span><span class="w">  </span><span class="nt">vmImage</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;ubuntu-latest&#39;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="nt">steps</span><span class="p">:</span><span class="w">
+</span><span class="w"></span>- <span class="nt">script</span><span class="p">:</span><span class="w"> </span><span class="l">echo Hello, world!</span><span class="w">
+</span><span class="w">  </span><span class="nt">displayName</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;Run a one-line script&#39;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span>- <span class="nt">script</span><span class="p">:</span><span class="w"> </span><span class="p">|</span><span class="sd">
+</span><span class="sd">    echo Add other tasks to build, test, and deploy your project.
+</span><span class="sd">    echo See https://aka.ms/yaml</span><span class="w">    
+</span><span class="w">  </span><span class="nt">displayName</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;Run a multi-line script&#39;</span><span class="w">
+</span></code></pre></td></tr></table>
+</div>
+</div><h4 id="adding-the-hugo-extension">Adding the Hugo Extension</h4>
+<p>If you don&rsquo;t already have the hugo extension installed to your Azure DevOps, you can do that <a href="https://marketplace.visualstudio.com/items?itemName=giuliovdev.hugo-extension">here</a>. Just click the &ldquo;Get it free&rdquo; button and go through the steps to install it.</p>
+<h4 id="our-build-definition">Our Build Definition</h4>
+<p>We don&rsquo;t actually want most of this, so let&rsquo;s delete everything except:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="nt">trigger</span><span class="p">:</span><span class="w">
+</span><span class="w"></span>- <span class="l">main</span><span class="w">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>Now let&rsquo;s add the rest of the YAML contents we&rsquo;re going to need (I&rsquo;ll go over what each section is for):</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="nt">resources</span><span class="p">:</span><span class="w">
+</span><span class="w"></span>- <span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l">self</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="nt">variables</span><span class="p">:</span><span class="w">
+</span><span class="w">  </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;$(Build.BuildId)&#39;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="nt">pool</span><span class="p">:</span><span class="w">
+</span><span class="w">  </span><span class="nt">vmImage</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;vs2017-win2016&#39;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="nt">stages</span><span class="p">:</span><span class="w">
+</span><span class="w"></span>- <span class="nt">stage</span><span class="p">:</span><span class="w"> </span><span class="l">Build</span><span class="w">
+</span><span class="w">  </span><span class="nt">displayName</span><span class="p">:</span><span class="w"> </span><span class="l">Build Hugo Site</span><span class="w">
+</span><span class="w">  </span><span class="nt">jobs</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span>- <span class="nt">job</span><span class="p">:</span><span class="w"> </span><span class="l">Build</span><span class="w">
+</span><span class="w">      </span><span class="nt">displayName</span><span class="p">:</span><span class="w"> </span><span class="l">Build</span><span class="w">
+</span><span class="w">      </span><span class="nt">steps</span><span class="p">:</span><span class="w">
+</span><span class="w">        </span>- <span class="nt">checkout</span><span class="p">:</span><span class="w"> </span><span class="l">self</span><span class="w">
+</span><span class="w">          </span><span class="nt">displayName</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;Checkout repository including submodules&#39;</span><span class="w">
+</span><span class="w">          </span><span class="nt">submodules</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span><span class="w">        </span>- <span class="nt">task</span><span class="p">:</span><span class="w"> </span><span class="l">HugoTask@1</span><span class="w">
+</span><span class="w">          </span><span class="nt">displayName</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;Generate Hugo site&#39;</span><span class="w">
+</span><span class="w">          </span><span class="nt">inputs</span><span class="p">:</span><span class="w">
+</span><span class="w">            </span><span class="nt">destination</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;$(Build.ArtifactStagingDirectory)&#39;</span><span class="w">
+</span><span class="w">            </span><span class="nt">baseURL</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;https://blog.iamdavidfrancis.com/&#39;</span><span class="w">
+</span><span class="w">        </span>- <span class="nt">task</span><span class="p">:</span><span class="w"> </span><span class="l">PublishPipelineArtifact@0</span><span class="w">
+</span><span class="w">          </span><span class="nt">displayName</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;Publish Hugo site as an artifact&#39;</span><span class="w">
+</span><span class="w">          </span><span class="nt">inputs</span><span class="p">:</span><span class="w">
+</span><span class="w">            </span><span class="nt">artifactName</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;hugo-site&#39;</span><span class="w">
+</span><span class="w">            </span><span class="nt">targetPath</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;$(Build.ArtifactStagingDirectory)&#39;</span><span class="w">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>First we&rsquo;re setting what resources we&rsquo;re going to need in this build. The repository is going to be this repository and we&rsquo;re going to build on a windows machine. We also want to tag the built artifact with the current BuildId:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="nt">resources</span><span class="p">:</span><span class="w">
+</span><span class="w"></span>- <span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l">self</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="nt">variables</span><span class="p">:</span><span class="w">
+</span><span class="w">  </span><span class="nt">tag</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;$(Build.BuildId)&#39;</span><span class="w">
+</span><span class="w">
+</span><span class="w"></span><span class="nt">pool</span><span class="p">:</span><span class="w">
+</span><span class="w">  </span><span class="nt">vmImage</span><span class="p">:</span><span class="w"> </span><span class="l">&#39;vs2017-win2016</span><span class="w">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>After we&rsquo;ve set all of this, we can actually define our build pipeline. Pipelines are broken down in to individual stages, with each stage having some number of jobs, and each job having some number of steps. As you can imagine, this allows for super customized builds. Since we&rsquo;re building a simple static site, we are only going to set up one stage and one job, both called &lsquo;Build&rsquo;:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="nt">stages</span><span class="p">:</span><span class="w">
+</span><span class="w"></span>- <span class="nt">stage</span><span class="p">:</span><span class="w"> </span><span class="l">Build</span><span class="w">
+</span><span class="w">  </span><span class="nt">displayName</span><span class="p">:</span><span class="w"> </span><span class="l">Build Hugo Site</span><span class="w">
+</span><span class="w">  </span><span class="nt">steps</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span>- <span class="nt">job</span><span class="p">:</span><span class="w"> </span><span class="l">Build</span><span class="w">
+</span><span class="w">      </span><span class="nt">displayName</span><span class="p">:</span><span class="w"> </span><span class="l">Build</span><span class="w">
+</span><span class="w">      </span><span class="nt">steps</span><span class="p">:</span><span class="w">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>We&rsquo;re going to add three steps to this build:</p>
+<ol>
+<li>Checkout the repository</li>
+<li>Build the Hugo site</li>
+<li>Publish the built files as an artifact.</li>
+</ol>
+<p>You&rsquo;ll notice that this doesn&rsquo;t actually deploy the site anywhere. We&rsquo;ll set up deployment in the next section. It&rsquo;s good to split up the build and deployment processes so that you can change one without needing to mess with the other. If at some point in the future we need to completely change the build process, the release process will continue to work as long as we&rsquo;re publishing the same artifact.</p>
+<h5 id="step-1-checking-out-the-repository">Step 1: Checking out the repository</h5>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-yaml" data-lang="yaml">- <span class="nt">checkout</span><span class="p">:</span><span class="w"> </span><span class="l">self</span><span class="w">
+</span><span class="w">  </span><span class="nt">displayName</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;Checkout repository including submodules&#39;</span><span class="w">
+</span><span class="w">  </span><span class="nt">submodules</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>This section is fairly straightforward. We want to pull the files from the git repo, and we want to include submodules. The reason I want to include submodules, is because of how I&rsquo;ve set up my Hugo site. I have added a theme to the <code>themes</code> folder as a submodule so I can easily update the theme when the upstream pushes new changes.</p>
+<h5 id="step-2-building-the-hugo-site">Step 2: Building the Hugo site</h5>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-yaml" data-lang="yaml">- <span class="nt">task</span><span class="p">:</span><span class="w"> </span><span class="l">HugoTask@1</span><span class="w">
+</span><span class="w">  </span><span class="nt">displayName</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;Generate Hugo site&#39;</span><span class="w">
+</span><span class="w">  </span><span class="nt">inputs</span><span class="p">:</span><span class="w"> 
+</span><span class="w">    </span><span class="nt">destination</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;$(Build.ArtifactStagingDirectory)&#39;</span><span class="w">
+</span><span class="w">    </span><span class="nt">baseURL</span><span class="p">:</span><span class="w"> </span><span class="l">&#39;https://blog.iamdavidfrancis.com</span><span class="w">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>Luckily someone has already built an extension for Azure DevOps to do the heavy lifting here. We don&rsquo;t need to run any scripts ourselves. More information on the extension can be found <a href="https://github.com/giuliov/hugo-vsts-extension/">here</a>. The extension has a few inputs that are optional, but the <code>destination</code> is required. This is the folder where the build will output the files. We&rsquo;re using <code>Build.ArtifactStagingDirectory</code> as this the default location Azure DevOps gives us for artifacts we want to publish.</p>
+<p>I&rsquo;m also setting the <code>baseURL</code> property. This is useful as it allows us to use a different <code>baseURL</code> in the <code>config.toml</code>, which means we can put the production URL here and the config can have the URL used for local development. It also means that in a more complicated build setup where you have something like <code>staging</code> and <code>production</code>, you can change the <code>baseURL</code> for those as well.</p>
+<h5 id="step-3-publishing-the-site-as-an-artifact">Step 3: Publishing the site as an Artifact</h5>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-yaml" data-lang="yaml">- <span class="nt">task</span><span class="p">:</span><span class="w"> </span><span class="l">PublishPipelineArtifact@0</span><span class="w">
+</span><span class="w">  </span><span class="nt">displayName</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;Publish Hugo site as an artifact&#39;</span><span class="w">
+</span><span class="w">  </span><span class="nt">inputs</span><span class="p">:</span><span class="w">
+</span><span class="w">    </span><span class="nt">artifactName</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;hugo-site&#39;</span><span class="w">
+</span><span class="w">    </span><span class="nt">targetPath</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;$(Build.ArtifactStagingDirectory)&#39;</span><span class="w">
+</span></code></pre></td></tr></table>
+</div>
+</div><p>This step will bundle all the built files and publish them in Azure DevOps as an artifact. This artifact is what we&rsquo;ll use for our deployment pipeline later. For now we just need to give it an <code>artifactName</code> which is how we will reference it in the Release, and a <code>targetPath</code> that tells the task which directory to look in.</p>
+<h3 id="running-the-new-build">Running the new Build</h3>
+<p>At this point, we can hit &ldquo;Save and Run&rdquo; in the top right corner of the window:</p>
+<p><img src="/images/posts/hugo-static-site-github-azure-devops/new-pipeline-review.png" alt="New Pipeline Save and Run"></p>
+<p>This will open a dialog asking for a commit message and which branch to commit to. This is because our build config is going to be stored as <code>azure-pipelines.yml</code> in the main branch. You can keep all the defaults and click the &ldquo;Save and run&rdquo; button on the bottom right.</p>
+<p><img src="/images/posts/hugo-static-site-github-azure-devops/new-pipeline-review-commit.png" alt="New Pipeline Commit Dialog"></p>
+<p>This will take us to a page that looks like this:</p>
+<p><img src="/images/posts/hugo-static-site-github-azure-devops/new-pipeline-build.png" alt="New Pipeline Build Status"></p>
+<p>If we click onto the &ldquo;Build&rdquo; job at the bottom, we will see the build steps that are being run and the logs from each step. This will tell us how long each step took, if it failed, and the output from the step. All of that can be useful for larger builds with more going on.</p>
+<p><img src="/images/posts/hugo-static-site-github-azure-devops/new-pipeline-build-steps.png" alt="New Pipeline Build Steps"></p>
+<p>Once the build succeeds, we know we&rsquo;re good to continue to make the Release.</p>
+<h2 id="setting-up-the-release-to-deploy-to-github-pages">Setting up the Release to deploy to GitHub Pages</h2>
+<p>In the Azure DevOps project, we&rsquo;ll clink on &ldquo;Releases&rdquo;, then the &ldquo;New&rdquo; button, then &ldquo;New release pipeline&rdquo; from the dropdown. That will bring us to the &ldquo;New release pipeline&rdquo; page.</p>
+<p><img src="/images/posts/hugo-static-site-github-azure-devops/new-release-page.png" alt="New Release Pipeline Page"></p>
+<p>We&rsquo;re going to click on &ldquo;Empty job&rdquo; so we can add our deployment tasks manually. The first thing we&rsquo;ll do is name the stage, I called mine &ldquo;Deploy to GitHub Pages&rdquo;:</p>
+<p><img src="/images/posts/hugo-static-site-github-azure-devops/new-release-stage-1-name.png" alt="New Release Pipeline Page"></p>
+<h3 id="configure-artifacts">Configure Artifacts</h3>
+<p>Before we define the build steps, lets set up the artifacts and the build trigger. In the &ldquo;Artifacts&rdquo; box, we&rsquo;ll click the &ldquo;Add and artifact&rdquo; button. In the dialog that opens, we want to choose &ldquo;Build&rdquo; and then populate it with the build information we set up before. In the &ldquo;Source alias&rdquo; box, we&rsquo;ll enter the folder we want the artifacts put into. I&rsquo;ve called mine <code>site-build</code>. Then hit the &ldquo;Add&rdquo; button</p>
+<p><img src="/images/posts/hugo-static-site-github-azure-devops/new-release-artifact.png" alt="New Release Pipeline Page"></p>
+<p>This will add an artifact to our Release pipeline:</p>
+<p><img src="/images/posts/hugo-static-site-github-azure-devops/new-release-artifact-added.png" alt="New Release Pipeline Page"></p>
+<p>Now we need to click the lightning bolt at the top right, and turn on the &ldquo;Continuous deployment trigger&rdquo;</p>
+<p><img src="/images/posts/hugo-static-site-github-azure-devops/new-release-artifact-continuous-trigger.png" alt="New Release Pipeline Page"></p>
+<h3 id="configure-deployment">Configure Deployment</h3>
+<h4 id="adding-the-github-pages-publish-extension">Adding the GitHub Pages Publish Extension</h4>
+<p>If you don&rsquo;t already have the extension installed to your Azure DevOps, you can do that <a href="https://marketplace.visualstudio.com/items?itemName=AccidentalFish.githubpages-publish">here</a>. Just click the &ldquo;Get it free&rdquo; button and go through the steps to install it.</p>
+<h4 id="github-personal-access-token">GitHub Personal Access Token</h4>
+<p>At this point, we&rsquo;ll need a GitHub Personal Access Token (PAT) so that we can commit the files back to the <code>gh-pages</code> branch. Instruction on how to generate a PAT can be found <a href="https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token">here</a>.</p>
+<p>We&rsquo;re going to add the PAT as a secure variable in the Release pipeline. To do that, we&rsquo;ll click into the &ldquo;Variables&rdquo; tab, then in the &ldquo;Pipeline variables&rdquo; section, we&rsquo;ll add a new variable called &ldquo;GitHubPAT&rdquo;. Make sure to toggle the padlock so that it stored as a secret. I set the Scope to the &ldquo;Deploy GitHub Pages&rdquo; stage to reduce the scope of access. It&rsquo;s always a good idea to restrict your variable scopes to just the stages that need them.</p>
+<p><img src="/images/posts/hugo-static-site-github-azure-devops/new-release-github-pat.png" alt="Add the GitHub PAT to Variables"></p>
+<h4 id="adding-the-deploy-to-github-pages-task">Adding the Deploy To GitHub Pages task.</h4>
+<p>The next thing we need to do is to configure the deployment tasks. To get there we go to the &ldquo;Tasks&rdquo; dropdown and click on &ldquo;Deploy to GitHub Pages&rdquo;. From the screen that opens, click the &ldquo;+&rdquo; button to the right of &ldquo;Agent job&rdquo;. This will open an &ldquo;Add tasks&rdquo; window, where we will choose the &ldquo;Publish to GitHub Pages&rdquo; task. More information about this task, can be found <a href="https://github.com/JamesRandall/Vsts-GitHub-Pages-Publish">here</a>.</p>
+<p><img src="/images/posts/hugo-static-site-github-azure-devops/new-release-stage-1-publish-task.png" alt="View stage tasks link"></p>
+<p>Once we add it, we&rsquo;ll need to configure the settings for where it should publish. Here&rsquo;s the settings we&rsquo;ll want to use (You can leave &ldquo;Display Name&rdquo; and &ldquo;Commit Message&rdquo; as the defaults if you like):</p>
+<table>
+<thead>
+<tr>
+<th>Property Name</th>
+<th>Value</th>
+<th>Explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Documentation Source</td>
+<td><code>$(System.DefaultWorkingDirectory)\site-build\hugo-site\*</code></td>
+<td><code>$(System.DefaultWorkingDirectory)</code> is the root where all the artifacts will come in. <code>site-build</code> is the source alias we chose for our site, and &lsquo;hugo-site` was the name of the artifact we published containing the site data. |</td>
+</tr>
+<tr>
+<td>GitHub Username</td>
+<td>Your github username</td>
+<td>This is the account the extension will push the commit to.</td>
+</tr>
+<tr>
+<td>GitHub Email Address</td>
+<td>You email address</td>
+<td>This is used as the email on the commit that gets pushed</td>
+</tr>
+<tr>
+<td>GitHub Personal Access Token</td>
+<td><code>$(GitHubPAT)</code></td>
+<td>This is the token used to authenticate against github. Since this is a secret we want to keep secure, we&rsquo;re using a variable instead of hard coding the secret here.</td>
+</tr>
+<tr>
+<td>Repository Name</td>
+<td>Your repository name</td>
+<td>This is the repo that the extension will push the commit to.</td>
+</tr>
+<tr>
+<td>Branch Name</td>
+<td><code>gh-pages</code></td>
+<td>This is the branch the commit will be pushed to. It should be <code>gh-pages</code> as that is one of the branches GitHub allows to be published as a static site.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="saving-and-running-the-release">Saving and Running the Release</h3>
+<p>Now we can hit the &ldquo;Save&rdquo; button. It will prompt for a folder, which I have left as <code>\</code>, but if you have a lot of release pipelines, it might make sense to organize them. Once we hit save, we can hit the &ldquo;Create Release&rdquo; button. Since this will be a manual release, there are some options that we are presented with for automated deployments and artifacts. We&rsquo;ll just leave everything as the default and hit Create.</p>
+<p><img src="/images/posts/hugo-static-site-github-azure-devops/create-release.png" alt="Create release"></p>
+<p>Once the release is created and you can watch the status as it runs:</p>
+<p><img src="/images/posts/hugo-static-site-github-azure-devops/create-release.png" alt="Release running"></p>
+<p>After the &ldquo;Deploy to GitHub Pages&rdquo; step completes successfully, the changes should show up in the browser.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Once all of this is done, we can no check changes into our repository&rsquo;s <code>main</code> branch, and have our changes automatically appear in the static site a few minutes later. Hopefully you found this post informative and if you have any questions or see any issues, please reach out to me on <a href="https://twitter.com/iamdavidfrancis">twitter</a>.</p>
+]]></content>
+            
+            
+            
+            
+            
+                
+                    
+                        
+                            
+                            
+                            
+                                <category scheme="https://blog.iamdavidfrancis.com/categories/development/" term="development" label="development" />
+                            
+                        
+                    
+                
+                    
+                        
+                            
+                            
+                            
+                                <category scheme="https://blog.iamdavidfrancis.com/tags/github/" term="github" label="github" />
+                            
+                        
+                            
+                            
+                            
+                                <category scheme="https://blog.iamdavidfrancis.com/tags/azure-devops/" term="azure devops" label="azure devops" />
+                            
+                        
+                            
+                            
+                            
+                                <category scheme="https://blog.iamdavidfrancis.com/tags/ci/cd/" term="CI/CD" label="CI/CD" />
+                            
+                        
+                    
+                
+            
+        </entry>
+    
         <entry>
             <title type="text">Using Dependency Injection in Asp.Net Core Filters &amp; Attributes</title>
             <link rel="alternate" type="text/html" href="https://blog.iamdavidfrancis.com/posts/aspnet-filter-dependency-injection/" />

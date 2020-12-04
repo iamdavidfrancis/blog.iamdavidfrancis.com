@@ -3,37 +3,52 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://blog.iamdavidfrancis.com/tags/azure-devops/</loc>
+    <lastmod>2020-12-04T13:59:49-08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/posts/hugo-static-site-github-azure-devops/</loc>
+    <lastmod>2020-12-04T13:59:49-08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/categories/</loc>
+    <lastmod>2020-12-04T13:59:49-08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/categories/development/</loc>
+    <lastmod>2020-12-04T13:59:49-08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/tags/github/</loc>
+    <lastmod>2020-12-04T13:59:49-08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/</loc>
+    <lastmod>2020-12-04T13:59:49-08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/posts/</loc>
+    <lastmod>2020-12-04T13:59:49-08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/tags/</loc>
+    <lastmod>2020-12-04T13:59:49-08:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://blog.iamdavidfrancis.com/tags/asp.net/</loc>
     <lastmod>2020-12-04T03:22:07-08:00</lastmod>
   </url>
   
   <url>
-    <loc>https://blog.iamdavidfrancis.com/categories/</loc>
-    <lastmod>2020-12-04T03:22:07-08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.iamdavidfrancis.com/categories/development/</loc>
-    <lastmod>2020-12-04T03:22:07-08:00</lastmod>
-  </url>
-  
-  <url>
     <loc>https://blog.iamdavidfrancis.com/tags/dotnet/</loc>
-    <lastmod>2020-12-04T03:22:07-08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.iamdavidfrancis.com/</loc>
-    <lastmod>2020-12-04T03:22:07-08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.iamdavidfrancis.com/posts/</loc>
-    <lastmod>2020-12-04T03:22:07-08:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.iamdavidfrancis.com/tags/</loc>
     <lastmod>2020-12-04T03:22:07-08:00</lastmod>
   </url>
   
@@ -70,6 +85,10 @@
   <url>
     <loc>https://blog.iamdavidfrancis.com/about/</loc>
     <lastmod>2020-04-11T17:02:19-07:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/tags/ci/cd/</loc>
   </url>
   
 </urlset>
