@@ -164,7 +164,7 @@ Notice how the only difference is the base type of `CustomAuthorizeFilter`. If w
 services.AddSingleton<CustomAuthorizeFilter>();
 ```
 
-This would register it as a Singleton, meaning only one instance will ever be created. You can register it with whatever scope fits your needs.
+This would register it as a Singleton, meaning only one instance will ever be created. You can register it with whatever scope fits your needs. Now you might be thinking, "Hey David, that's just a normal service being added to the DI container and then using the `ServiceFilterAttribute` to wire the attribute up." You would be 100% correct, that is exactly what we're doing here. Technically you could inject any Service like this, but it really only makes sense to inject something that implements `IFilterMetadata` so that the framework can do its magic and run the code.
 
 
 ### ServiceFilter Benefits and Downsides.
