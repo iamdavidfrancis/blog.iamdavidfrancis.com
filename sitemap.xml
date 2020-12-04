@@ -3,17 +3,47 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://blog.iamdavidfrancis.com/categories/</loc>
-    <lastmod>2020-04-13T17:42:27-07:00</lastmod>
+    <loc>https://blog.iamdavidfrancis.com/tags/asp.net/</loc>
+    <lastmod>2020-12-04T03:04:44-08:00</lastmod>
   </url>
   
   <url>
-    <loc>https://blog.iamdavidfrancis.com/posts/discord-bot/</loc>
-    <lastmod>2020-04-13T17:42:27-07:00</lastmod>
+    <loc>https://blog.iamdavidfrancis.com/categories/</loc>
+    <lastmod>2020-12-04T03:04:44-08:00</lastmod>
   </url>
   
   <url>
     <loc>https://blog.iamdavidfrancis.com/categories/development/</loc>
+    <lastmod>2020-12-04T03:04:44-08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/tags/dotnet/</loc>
+    <lastmod>2020-12-04T03:04:44-08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/</loc>
+    <lastmod>2020-12-04T03:04:44-08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/posts/</loc>
+    <lastmod>2020-12-04T03:04:44-08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/tags/</loc>
+    <lastmod>2020-12-04T03:04:44-08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/posts/aspnet-filter-dependency-injection/</loc>
+    <lastmod>2020-12-04T03:04:44-08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://blog.iamdavidfrancis.com/posts/discord-bot/</loc>
     <lastmod>2020-04-13T17:42:27-07:00</lastmod>
   </url>
   
@@ -24,21 +54,6 @@
   
   <url>
     <loc>https://blog.iamdavidfrancis.com/tags/js/</loc>
-    <lastmod>2020-04-13T17:42:27-07:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.iamdavidfrancis.com/</loc>
-    <lastmod>2020-04-13T17:42:27-07:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.iamdavidfrancis.com/posts/</loc>
-    <lastmod>2020-04-13T17:42:27-07:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://blog.iamdavidfrancis.com/tags/</loc>
     <lastmod>2020-04-13T17:42:27-07:00</lastmod>
   </url>
   

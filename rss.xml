@@ -21,10 +21,334 @@
             <webMaster>david@iamdavidfrancis.com (David Francis)</webMaster>
         
         
-        <lastBuildDate>Fri, 04 Dec 2020 11:01:38 +0000</lastBuildDate>
+        <lastBuildDate>Fri, 04 Dec 2020 11:09:02 +0000</lastBuildDate>
         
             <atom:link rel="self" type="application/rss+xml" href="https://blog.iamdavidfrancis.com/rss.xml" />
         
+        
+            <item>
+                <title>Using Dependency Injection in Asp.Net Core Filters &amp; Attributes</title>
+                <link>https://blog.iamdavidfrancis.com/posts/aspnet-filter-dependency-injection/</link>
+                <guid isPermaLink="true">https://blog.iamdavidfrancis.com/posts/aspnet-filter-dependency-injection/</guid>
+                <pubDate>Fri, 04 Dec 2020 01:41:00 -0800</pubDate>
+                
+                    <author>david@iamdavidfrancis.com (David Francis)</author>
+                
+                
+                
+                    <description><![CDATA[<p>Sometimes when working with Asp.Net MVC or Web Apis, you&rsquo;ll want to add a Filter Attribute to a class or an endpoint. A common use case would be adding a custom Authorization filter. Usually these filters would be defined as:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-cs" data-lang="cs"><span class="k">public</span> <span class="k">class</span> <span class="nc">CustomAuthorizeAttribute</span><span class="p">:</span> <span class="n">AuthorizeAttribute</span><span class="p">,</span> <span class="n">IAuthorizationFilter</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="n">OnAuthorization</span><span class="p">(</span><span class="n">AuthorizationFilterContext</span> <span class="n">filterContext</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// Some authorization code.
+</span><span class="c1"></span>    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>and then used like this:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-cs" data-lang="cs"><span class="na">[HttpGet]</span>
+<span class="na">[CustomAuthorize]</span>
+<span class="k">public</span> <span class="k">async</span> <span class="n">IActionResult</span> <span class="n">GetItem</span><span class="p">(</span><span class="kt">string</span> <span class="n">id</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// Some implementation.
+</span><span class="c1"></span><span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>This allows us to move the authorization logic to a shared piece of code, to cut down on reuse and keep our controller endpoints clean. The big downside to this approach is that we can&rsquo;t use Dependency Injection. If we add a Constructor to the Attribute, we&rsquo;ll have to pass it a value when we define the controller.</p>
+<p>Let&rsquo;s say we wanted to pass in an ILogger so we could capture telemetry in our Authorization code. In our Controller we could inject it:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-cs" data-lang="cs"><span class="k">public</span> <span class="k">class</span> <span class="nc">SuperAwesomeController</span> <span class="p">:</span> <span class="n">ControllerBase</span>
+<span class="p">{</span>
+
+    <span class="k">private</span> <span class="k">readonly</span> <span class="n">ILogger</span> <span class="n">logger</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="n">SuperAwesomeController</span><span class="p">(</span><span class="n">ILogger</span> <span class="n">logger</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">logger</span> <span class="p">=</span> <span class="n">logger</span><span class="p">;</span>
+    <span class="p">}</span>
+
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>But in our Attribute this won&rsquo;t work because we would need to pass in the logger when we use the attribute as a compile-time constant, which it can never be.  So now we need to come up with a solution that allows us to inject services from the DI container. Asp.Net Core actually gives us two ways to do this, each with their own advantages and disadvantages: the <code>TypeFilter</code> and the <code>ServiceFilter</code>.</p>
+<h2 id="typefilters">TypeFilters</h2>
+<p>Type filters are a convenient way to create an attribute that instantiates the attribute per request and inject services from the container. The way we do this is by making two classes, one attribute that implements <code>TypeFilterAttribute</code> and one that is defined as the `ImplementationType' in the Type Filter.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-cs" data-lang="cs"><span class="k">public</span> <span class="k">class</span> <span class="nc">CustomAuthorizeAttribute</span> <span class="p">:</span> <span class="n">TypeFilterAttribute</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="n">CustomAuthorizeAttribute</span><span class="p">()</span>
+        <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">CustomAuthorizeFilter</span><span class="p">))</span>
+    <span class="p">{</span>
+        
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">CustomAuthorizeFilter</span> <span class="p">:</span> <span class="n">IAuthorizationFilter</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="k">readonly</span> <span class="n">ILogger</span> <span class="n">logger</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="n">CustomAuthorizeFilter</span><span class="p">(</span><span class="n">ILogger</span> <span class="n">logger</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">logger</span> <span class="p">=</span> <span class="n">logger</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">void</span> <span class="n">OnAuthorization</span><span class="p">(</span><span class="n">AuthorizationFilterContext</span> <span class="n">filterContext</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// Some authorization code.
+</span><span class="c1"></span>    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>Now when we add the <code>[CustomAuthorize]</code> attribute to our controller, we&rsquo;re actually adding a TypeFilter that will instantiate our <code>CustomAuthorizeFilter</code> and inject the <code>ILogger</code>. One of the reasons this is so powerful is that we can extend the capabilities here a little bit. Say we wanted to pass a role into the Authorization Filter to specify more granular access to the endpoint. With a traditional attribute we would implement it as:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-cs" data-lang="cs"><span class="k">public</span> <span class="k">class</span> <span class="nc">CustomAuthorizeAttribute</span><span class="p">:</span> <span class="n">AuthorizeAttribute</span><span class="p">,</span> <span class="n">IAuthorizationFilter</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="k">readonly</span> <span class="kt">string</span> <span class="n">role</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="n">CustomAuthorizeAttribute</span><span class="p">(</span><span class="kt">string</span> <span class="n">role</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">role</span> <span class="p">=</span> <span class="n">role</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="p">...</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>With the power of the <code>TypeFilter</code> we can still do that, just with a slight modification:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-cs" data-lang="cs"><span class="k">public</span> <span class="k">class</span> <span class="nc">CustomAuthorizeAttribute</span> <span class="p">:</span> <span class="n">TypeFilterAttribute</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="n">CustomAuthorizeAttribute</span><span class="p">(</span><span class="kt">string</span> <span class="n">role</span><span class="p">)</span>
+        <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">CustomAuthorizeFilter</span><span class="p">))</span>
+    <span class="p">{</span>
+        <span class="n">Arguments</span> <span class="p">=</span> <span class="k">new</span> <span class="kt">object</span><span class="p">[]</span> <span class="p">{</span> <span class="n">role</span> <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">CustomAuthorizeFilter</span> <span class="p">:</span> <span class="n">IAuthorizationFilter</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="k">readonly</span> <span class="kt">string</span> <span class="n">role</span><span class="p">;</span>
+    <span class="k">private</span> <span class="k">readonly</span> <span class="n">ILogger</span> <span class="n">logger</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="n">CustomAuthorizeFilter</span><span class="p">(</span><span class="kt">string</span> <span class="n">role</span><span class="p">,</span> <span class="n">ILogger</span> <span class="n">logger</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">role</span> <span class="p">=</span> <span class="n">role</span><span class="p">;</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">logger</span> <span class="p">=</span> <span class="n">logger</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="p">...</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><h3 id="typefilter-benefits-and-downsides">TypeFilter Benefits and Downsides.</h3>
+<p>The <code>TypeFilter</code> allows us to define our Filter in a way that gives us Dependency Injection and still allows us to pass in arguments like a normal Attribute would. The main downside here is that it has to instantiate an instance per request to our controller, adding some overhead to every request. If you don&rsquo;t need per-instance properties like this, it might be more beneficial to use a <code>ServiceFilter</code> instead.</p>
+<h2 id="servicefilters">ServiceFilters</h2>
+<p>Similar to a <code>TypeFilter</code>, a <code>ServiceFilter</code> allows us to add Dependency Injection to our Filters, but it goes one step further and actually pulls the Filter from our DI container, instead of making a new instance per request. This allows us to register our filter in the DI container, giving us some more control over the lifetime of it. An example implementation might look like this:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-cs" data-lang="cs"><span class="k">public</span> <span class="k">class</span> <span class="nc">CustomAuthorizeAttribute</span> <span class="p">:</span> <span class="n">ServiceFilterAttribute</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="n">CustomAuthorizeAttribute</span><span class="p">()</span>
+        <span class="p">:</span> <span class="k">base</span><span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="n">CustomAuthorizeFilter</span><span class="p">))</span>
+    <span class="p">{</span>
+        
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">CustomAuthorizeFilter</span> <span class="p">:</span> <span class="n">IAuthorizationFilter</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="k">readonly</span> <span class="n">ILogger</span> <span class="n">logger</span><span class="p">;</span>
+
+    <span class="k">public</span> <span class="n">CustomAuthorizeFilter</span><span class="p">(</span><span class="n">ILogger</span> <span class="n">logger</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="n">logger</span> <span class="p">=</span> <span class="n">logger</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">void</span> <span class="n">OnAuthorization</span><span class="p">(</span><span class="n">AuthorizationFilterContext</span> <span class="n">filterContext</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="c1">// Some authorization code.
+</span><span class="c1"></span>    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>Notice how the only difference is the base type of <code>CustomAuthorizeFilter</code>. If we only did this though, we would get an exception as <code>CustomAuthorizeFilter</code> has not yet been registered in the DI container. This can easily be done by adding it to the <code>IServiceCollection</code> in <code>Startup</code>:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre class="chroma"><code class="language-cs" data-lang="cs"><span class="n">services</span><span class="p">.</span><span class="n">AddSingleton</span><span class="p">&lt;</span><span class="n">CustomAuthorizeFilter</span><span class="p">&gt;();</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>This would register it as a Singleton, meaning only one instance will ever be created. You can register it with whatever scope fits your needs.</p>
+<h3 id="servicefilter-benefits-and-downsides">ServiceFilter Benefits and Downsides.</h3>
+<p>The <code>ServiceFilter</code> gives us the added advantage of using a Filter registered in the DI container, saving us the overhead of creating an instance per-request. The main downside is losing the ability to pass in arguments from the Attribute like <code>TypeFilter</code> gives us.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Both <code>TypeFilter</code> and <code>ServiceFilter</code> give us powerful tools for creating custom Attributes and Filters, along with the flexibility to choose the option that best suits our needs. Hopefully you found this post helpful and if you see any errors or issues, please reach out to me on <a href="https://twitter.com/iamdavidfrancis">twitter</a>.</p>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.typefilterattribute?view=aspnetcore-5.0">https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.typefilterattribute?view=aspnetcore-5.0</a></li>
+<li><a href="https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.servicefilterattribute?view=aspnetcore-5.0">https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.servicefilterattribute?view=aspnetcore-5.0</a></li>
+</ul>
+]]></description>
+                
+                
+                
+                
+                
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://blog.iamdavidfrancis.com/categories/development/">development</category>
+                                
+                            
+                        
+                    
+                        
+                            
+                                
+                                
+                                
+                                    <category domain="https://blog.iamdavidfrancis.com/tags/dotnet/">dotnet</category>
+                                
+                            
+                                
+                                
+                                
+                                    <category domain="https://blog.iamdavidfrancis.com/tags/asp.net/">asp.net</category>
+                                
+                            
+                        
+                    
+                
+            </item>
         
             <item>
                 <title>Creating a Discord Bot with Docker</title>
