@@ -7,9 +7,9 @@ categories: ["development"]
 tags: ["github", "azure devops", "CI/CD"]
 ---
 
-Since I built this blog using GitHub pages with Hugo, I thought I'd share the process I used to automate the build and deployments. Since GitHub pages can only serve static sites, the only two options are to publish all the HTML/CSS/JS files to a branch or use a Jekyll theme (which GitHub has native support for). These are both great options, and I've used both in the past, but I really like how Hugo's site generation and content system works. 
+Since I built this blog using GitHub pages with Hugo, I thought I'd share the process I used to automate the build and deployments. GitHub pages can only serve static sites, so the only two options are to publish all the HTML/CSS/JS files to a branch or use a Jekyll theme (which GitHub has native support for). These are both great options, and I've used both in the past, but I really like how Hugo's site generation and content system works. 
 
-The downside to using Hugo? I'd have to manually build the static content, and commit it to the `gh-pages` branch (Keeping `main` free to hold the source code that gets used by Hugo to generate the static site). I'm not a huge fan of having to do a bunch of manual steps to publish something once I finish coding, so I figured now is the perfect time to get some practice with Continuous Integration/Continuous Deployment using Azure DevOps Pipelines.
+The downside to using Hugo? I'd have to manually build the static content, and commit it to the `gh-pages` branch (Keeping `main` free to hold the source code that gets used by Hugo to generate the static site). I'm not a huge fan of having to do a bunch of manual steps to publish something once I finish coding (or in this case writing blog posts in Markdown), so I figured now is the perfect time to get some practice with Continuous Integration/Continuous Deployment using Azure DevOps Pipelines.
 
 I've already built the site in Hugo, got the static site defined in GitHub, and I'm using CloudFlare in front of it for the CDN and caching. The post will assume you already have a GitHub repo with a Hugo site deployed to `gh-pages` with the source code in `main`. It will cover adding automated builds for generating the Hugo site so you don't have to do it manually.
 
