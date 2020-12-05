@@ -4,7 +4,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-us">
     <title type="text">My Blog. Sorry.</title>
     <subtitle type="html">David Francis&#39;s personal blog. Follow if you&#39;re bored I guess.</subtitle>
-    <updated>2020-12-05T05:41:54&#43;00:00</updated>
+    <updated>2020-12-05T05:50:30&#43;00:00</updated>
     <id>https://blog.iamdavidfrancis.com/</id>
     <link rel="alternate" type="text/html" href="https://blog.iamdavidfrancis.com/" />
     <link rel="self" type="application/atom&#43;xml" href="https://blog.iamdavidfrancis.com/atom.xml" />
@@ -20,17 +20,17 @@
             <title type="text">Building a GitHub Pages site using Hugo and Azure DevOps Pipelines</title>
             <link rel="alternate" type="text/html" href="https://blog.iamdavidfrancis.com/posts/hugo-static-site-github-azure-devops/" />
             <id>https://blog.iamdavidfrancis.com/posts/hugo-static-site-github-azure-devops/</id>
-            <updated>2020-12-04T14:04:33-08:00</updated>
+            <updated>2020-12-04T21:46:37-08:00</updated>
             <published>2020-12-04T11:46:37-08:00</published>
             <author>
                     <name>David Francis</name>
                     <uri>https://iamdavidfrancis.com/</uri>
                     <email>david@iamdavidfrancis.com</email>
                     </author>
-            <summary type="html">Since I built this blog using GitHub pages with Hugo, I thought I&amp;rsquo;d share the process I used to automate the build and deployments. Since GitHub pages can only serve static sites, the only two options are to publish all the HTML/CSS/JS files to a branch or use a Jekyll theme (which GitHub has native support for).</summary>
+            <summary type="html">Since I built this blog using GitHub pages with Hugo, I thought I&amp;rsquo;d share the process I used to automate the build and deployments. GitHub pages can only serve static sites, so the only two options are to publish all the HTML/CSS/JS files to a branch or use a Jekyll theme (which GitHub has native support for).</summary>
             
-                <content type="html">&lt;p&gt;Since I built this blog using GitHub pages with Hugo, I thought I&amp;rsquo;d share the process I used to automate the build and deployments. Since GitHub pages can only serve static sites, the only two options are to publish all the HTML/CSS/JS files to a branch or use a Jekyll theme (which GitHub has native support for). These are both great options, and I&amp;rsquo;ve used both in the past, but I really like how Hugo&amp;rsquo;s site generation and content system works.&lt;/p&gt;
-&lt;p&gt;The downside to using Hugo? I&amp;rsquo;d have to manually build the static content, and commit it to the &lt;code&gt;gh-pages&lt;/code&gt; branch (Keeping &lt;code&gt;main&lt;/code&gt; free to hold the source code that gets used by Hugo to generate the static site). I&amp;rsquo;m not a huge fan of having to do a bunch of manual steps to publish something once I finish coding, so I figured now is the perfect time to get some practice with Continuous Integration/Continuous Deployment using Azure DevOps Pipelines.&lt;/p&gt;
+                <content type="html">&lt;p&gt;Since I built this blog using GitHub pages with Hugo, I thought I&amp;rsquo;d share the process I used to automate the build and deployments. GitHub pages can only serve static sites, so the only two options are to publish all the HTML/CSS/JS files to a branch or use a Jekyll theme (which GitHub has native support for). These are both great options, and I&amp;rsquo;ve used both in the past, but I really like how Hugo&amp;rsquo;s site generation and content system works.&lt;/p&gt;
+&lt;p&gt;The downside to using Hugo? I&amp;rsquo;d have to manually build the static content, and commit it to the &lt;code&gt;gh-pages&lt;/code&gt; branch (Keeping &lt;code&gt;main&lt;/code&gt; free to hold the source code that gets used by Hugo to generate the static site). I&amp;rsquo;m not a huge fan of having to do a bunch of manual steps to publish something once I finish coding (or in this case writing blog posts in Markdown), so I figured now is the perfect time to get some practice with Continuous Integration/Continuous Deployment using Azure DevOps Pipelines.&lt;/p&gt;
 &lt;p&gt;I&amp;rsquo;ve already built the site in Hugo, got the static site defined in GitHub, and I&amp;rsquo;m using CloudFlare in front of it for the CDN and caching. The post will assume you already have a GitHub repo with a Hugo site deployed to &lt;code&gt;gh-pages&lt;/code&gt; with the source code in &lt;code&gt;main&lt;/code&gt;. It will cover adding automated builds for generating the Hugo site so you don&amp;rsquo;t have to do it manually.&lt;/p&gt;
 &lt;h2 id=&#34;cicd-plan&#34;&gt;CI/CD Plan&lt;/h2&gt;
 &lt;p&gt;My goal was to have as much of the process be automated as possible. Once I push the commit to GitHub, everything else should happen automatically. The idea is to have the commit to &lt;code&gt;main&lt;/code&gt; trigger an automated build in Azure Pipelines, then once the build finishes, have it trigger an automated Release that will push the build contents as a commit to the &lt;code&gt;gh-pages&lt;/code&gt; branch. I also have some scripts that will invalidate the CloudFlare caches to ensure users get a fresh copy of the site when they load it after I deploy, but that&amp;rsquo;s out of scope for this post.&lt;/p&gt;
