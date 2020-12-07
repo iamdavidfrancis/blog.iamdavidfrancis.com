@@ -21,7 +21,7 @@
             <webMaster>david@iamdavidfrancis.com (David Francis)</webMaster>
         
         
-        <lastBuildDate>Sat, 05 Dec 2020 05:50:30 &#43;0000</lastBuildDate>
+        <lastBuildDate>Mon, 07 Dec 2020 18:50:58 &#43;0000</lastBuildDate>
         
             <atom:link rel="self" type="application/rss&#43;xml" href="https://blog.iamdavidfrancis.com/rss.xml" />
         
@@ -486,7 +486,7 @@
 &lt;span class=&#34;p&#34;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;But in our Attribute this won&amp;rsquo;t work because we would need to pass in the &lt;code&gt;ILogger&lt;/code&gt; when we use the attribute and attribute arguments must be a compile-time constant, which it the &lt;code&gt;ILogger&lt;/code&gt; can never be.  So now we need to come up with a solution that allows us to inject services from the DI container. Asp.Net Core actually gives us two ways to do this, each with their own advantages and disadvantages: the &lt;code&gt;TypeFilter&lt;/code&gt; and the &lt;code&gt;ServiceFilter&lt;/code&gt;.&lt;/p&gt;
+&lt;/div&gt;&lt;p&gt;But in our Attribute this won&amp;rsquo;t work because we would need to pass in the &lt;code&gt;ILogger&lt;/code&gt; when we use the attribute and attribute arguments must be a compile-time constant, which the &lt;code&gt;ILogger&lt;/code&gt; can never be.  So now we need to come up with a solution that allows us to inject services from the DI container. Asp.Net Core actually gives us two ways to do this, each with their own advantages and disadvantages: the &lt;code&gt;TypeFilter&lt;/code&gt; and the &lt;code&gt;ServiceFilter&lt;/code&gt;.&lt;/p&gt;
 &lt;h2 id=&#34;typefilters&#34;&gt;TypeFilters&lt;/h2&gt;
 &lt;p&gt;Type filters are a convenient way to create an attribute that instantiates the attribute per request and inject services from the container. The way we do this is by making two classes, one attribute that implements &lt;code&gt;TypeFilterAttribute&lt;/code&gt; and one that is defined as the `ImplementationType&#39; in the Type Filter.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div class=&#34;chroma&#34;&gt;
