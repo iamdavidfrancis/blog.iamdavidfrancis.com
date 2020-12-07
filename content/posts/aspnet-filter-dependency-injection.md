@@ -54,7 +54,7 @@ But in our Attribute this won't work because we would need to pass in the `ILogg
 
 ## TypeFilters
 
-Type filters are a convenient way to create an attribute that instantiates the attribute per request and inject services from the container. The way we do this is by making two classes, one attribute that implements `TypeFilterAttribute` and one that is defined as the `ImplementationType' in the Type Filter.
+Type filters are a convenient way to create an attribute that instantiates the filter per request and inject services from the container. The way we do this is by making two classes, one attribute that implements `TypeFilterAttribute` and one that is defined as the `ImplementationType' in the Type Filter.
 
 ```cs
 public class CustomAuthorizeAttribute : TypeFilterAttribute
@@ -123,6 +123,8 @@ public class CustomAuthorizeFilter : IAuthorizationFilter
     ...
 }
 ```
+
+The `Arguments` property of the `TypeFilter` will inject things that are not injected from the Service Collection. In this example, `role` will be injected by `Arguments` and `ILogger` from the Service Collection.
 
 ### TypeFilter Benefits and Downsides.
 
