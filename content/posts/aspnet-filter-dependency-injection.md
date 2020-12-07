@@ -50,7 +50,7 @@ public class SuperAwesomeController : ControllerBase
 }
 ```
 
-But in our Attribute this won't work because we would need to pass in the `ILogger` when we use the attribute and attribute arguments must be a compile-time constant, which it the `ILogger` can never be.  So now we need to come up with a solution that allows us to inject services from the DI container. Asp.Net Core actually gives us two ways to do this, each with their own advantages and disadvantages: the `TypeFilter` and the `ServiceFilter`.
+But in our Attribute this won't work because we would need to pass in the `ILogger` when we use the attribute and attribute arguments must be a compile-time constant, which the `ILogger` can never be.  So now we need to come up with a solution that allows us to inject services from the DI container. Asp.Net Core actually gives us two ways to do this, each with their own advantages and disadvantages: the `TypeFilter` and the `ServiceFilter`.
 
 ## TypeFilters
 
