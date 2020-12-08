@@ -4,7 +4,7 @@ date: 2020-12-04T01:41:00-08:00
 # publish-date: 2020-04-11T22:30:00-07:00
 draft: false
 categories: ["development"]
-tags: ["dotnet", "asp.net"]
+tags: ["dotnet", "asp.net", "c#"]
 ---
 
 Sometimes when working with Asp.Net MVC or Web Apis, you'll want to add a Filter Attribute to a class or an endpoint. This can be an Authorization Filter, a Resource Filter, an Action Filter, etc. A common use case I have seen is adding a custom Authorization Filter. In this post, I'll go through some of the issues I've run into while trying to add Dependency Injection to a Filter. 
