@@ -232,3 +232,122 @@ public async addOrUpdateGuildSettings(settings: TableEntity<GuildSettings>): Pro
 Now we've got our table service added and ready to go. Let's add some new commands to use them
 
 ## Create the New Commands
+
+We want to add two new commands:
+
+1. `/config` to allow server admins to set the channel.
+2. `/event` to allow server members to create events.
+
+### Config Command
+
+Let's create a new file named `config.ts` in the `commands` directory. Add these imports at the top:
+
+```ts
+import {
+  ChatInputCommandInteraction,
+  CommandInteraction,
+  InteractionContextType,
+  PermissionFlagsBits,
+  SlashCommandBuilder,
+} from "discord.js";
+import DBService from "../services/db-service";
+```
+
+Once again we'll need to export `data` and `execute`. We will start with `data`. We want the `/config` command to have a subcommand called `set-channel`. This allows us to add more config options later without needing a bunch of top level commands.
+
+```ts
+export const data = new SlashCommandBuilder()
+  .setName("config")
+  .setDescription("Update the bot config")
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("set-channel")
+      .setDescription("The channel the bot should create event threads in.")
+      .addChannelOption((option) =>
+        option
+          .setName("channel")
+          .setDescription("The corresponding channel.")
+          .setRequired(true)
+      )
+  )
+  .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+  .setContexts(InteractionContextType.Guild);
+```
+
+This syntax is very similar to the `/help` command with two exceptions:
+
+1. The `addSubcommand` api. This adds a subcommand named `set-channel` with a description and an option. The option is a `ChannelOption` which tells discord that this option should have a channel picker shown.
+2. The `setDefaultMemberPermissions` api. This tells discord that we only want users with "Manage Server" permissions to be able to run the command. Server owners can always override this setting to whatever they want on their server, but this serves as a safe default.
+
+Now let's set up the `execute` function:
+
+```ts
+export async function execute(interaction: CommandInteraction) {
+  const guildId = interaction.guildId;
+
+  if (!guildId) {
+    console.error("The guildId was missing in the interaction.");
+    return interaction.reply("Unable to process command.");
+  }
+
+  if (interaction.isChatInputCommand()) {
+    switch (interaction.options.getSubcommand()) {
+      case "set-channel":
+        await setChannelHandler(guildId, interaction);
+        break;
+      default:
+        return interaction.reply(
+          `Unknown command: ${interaction.options.getSubcommand()}`
+        );
+    }
+  }
+}
+```
+
+To prevent the method from getting too long, I've set it up so each subcommand has a separate handler method. The main handler just ensures the `guildId` is present and then invokes the subCommand handler. Let's add the `setChannelHandler` implementation:
+
+```ts
+async function setChannelHandler(
+  guildId: string,
+  interaction: ChatInputCommandInteraction
+) {
+  const guildSettings = await DBService.getGuildSettings(guildId);
+  const channel = interaction.options.getChannel("channel");
+
+  if (!channel || !guildSettings) {
+    console.error("Channel or guildSettings was missing.");
+    return interaction.reply("Unable to process command.");
+  }
+
+  guildSettings.eventChannelId = channel.id;
+
+  await DBService.addOrUpdateGuildSettings(guildSettings);
+  return interaction.reply(
+    `Event Threads will now be posted under ${channel.toString()}`
+  );
+}
+```
+
+In this, we grab the channel id from the interaction, verify that it's been set, then set the property in the DB. We then reply with a success message. One last thing we need to do to enable this command is to add it in the `index.ts` file in the `commands` directory:
+
+```ts
+// Existing imports...
+import * as config from "./config";
+
+export const commands = {
+  // Existing commands...
+  config,
+};
+```
+
+Now let's move on to the `/event/` command.
+
+### Event Command
+
+This is the main function of our bot. The way we want this to work is:
+
+1. User runs `/event` with some options attached.
+2. We form an embed with the options from the interaction.
+3. We create a thread in the channel we have in the DB.
+4. Post the embed in the thread.
+5. Reply to the user with a success message.
