@@ -34,13 +34,14 @@ I'm still a big fan of [VS Code](https://code.visualstudio.com/) so all of the w
 
 This time around I'm going to try and cover the CI/CD setup I've thrown together, so if you want to follow along yourself, you'll want to have a [GitHub](https://github.com/) account and [Docker](https://www.docker.com/) installed.
 
-The steps I used to create the bot are:
+The steps are broken up as follows:
 
 1. [Create a bot on Discord](#1-create-the-bot-on-discord)
 2. [Set up the bot code](#2-set-up-the-bot-code)
-3. [Set up Azure Resources](#3-set-up-azure-resources)
-4. [Running Locally](#4-running-locally)
-5. [Deploying to Azure](#5-deploying-to-azure)
+3. [Add more commands](#3-add-more-commands)
+4. [Set up Azure Resources](#4-set-up-azure-resources)
+5. [Running Locally](#5-running-locally)
+6. [Deploying to Azure](#6-deploying-to-azure)
 
 ## 1. Create the bot on Discord
 
@@ -277,6 +278,8 @@ Now we've defined our command handler for the `help` command, but we have a prob
 
 We need to tell discord what commands we support, and we need to do it for every server. Let's start by setting up a function to handle deploying the commands.
 
+#### 2.5.1 Deploy Commands function
+
 In the `src` directory, create a new file named `deploy-commands.ts`. We need to import a few things at the top of this file:
 
 ```ts
@@ -293,12 +296,98 @@ const commandsData = Object.values(commands).map((command) => command.data);
 
 Check out the MDN for more info on [`Object.values`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/values) and [`Array.prototype.map`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map)
 
+We still need a few more things before we are ready to deploy the commands. We need a Discord REST client and the actual deploy function. Let's get those added now:
+
+```ts
+const rest = new REST({ version: "10" }).setToken(config.DISCORD_TOKEN);
+
+type DeployCommandProps = {
+  guildId: string;
+};
+
+export async function deployCommands({ guildId }: DeployCommandProps) {
+  // ...
+}
+```
+
+We're setting up the rest client outside of the exported function because we only need one instance instead of newing it up every run, and we're adding a new type to make the function definition a little more readable.
+
+The implementation of the function is fairly straightforward:
+
+```ts
+export async function deployCommands({ guildId }: DeployCommandProps) {
+  try {
+    console.log("Started refreshing application (/) commands.");
+
+    await rest.put(
+      Routes.applicationGuildCommands(config.DISCORD_CLIENT_ID, guildId),
+      {
+        body: commandsData,
+      }
+    );
+
+    console.log("Successfully reloaded application (/) commands.");
+  } catch (error) {
+    console.error(error);
+  }
+}
+```
+
+#### 2.5.2 Wire up the function
+
+We've made our `deploCommands` function, now let's get it wired up. Back inside of `index.ts` we still have that `guildCreate` event. We can use that to add the commands whenever a new server get's added.
+
+At the top of the `index.ts` file, we can add another import below `commands`:
+
+```ts
+import { deployCommands } from "./deploy-commands";
+```
+
+Then we can wire it into the `guildCreate` handler:
+
+```ts
+client.on("guildCreate", async (guild) => {
+  await deployCommands({ guildId: guild.id });
+});
+```
+
+Now whenever a server adds the bot, we will automatically install the commands. Now, we have one small problem: what happens if we add a new command after the server has joined? This is really important while developing the bot as you don't want to have to keep removing and readding the bot. My solution was to update the commands the first time any command is sent from a server.
+
+Now I know this isn't scalable if the bot is being added to a ton of servers frequently, especially if you have to get into sharding (a topic for another post). This solution is fine, however, for a small bot and during development.
+
+At the top of the `index.ts` file, right after the `deployCommands` import, we can add this:
+
+```ts
+const seenGuilds = new Set();
+```
+
+This will be our "Cache" of servers we've seen run commands. This will be reset every time the bot restarts, which is exactly what we're looking for here. Inside of the `interactionCreate` handler, we can add some more code to handle deploying the commands:
+
+```ts {hl_lines=["5-11"]}
+if (!interaction.isCommand()) {
+  // ...
+}
+
+const guildId = interaction.guildId;
+
+// Ensure the guild gets the updated commands
+if (!!guildId && !seenGuilds.has(guildId)) {
+  seenGuilds.add(guildId);
+  await deployCommands({ guildId });
+}
+
+const { commandName } = interaction;
+// ...
+```
+
+This will call `deployCommands()` if we have the guild id and the guild id has not been seen this run.
+
+And with that, we now have a functioning bot. You should be able to run `npm run start` and the bot should connect. You can then use the install link from earlier to add the bot to your test server and run the `/help` command.
+
 ## 3. Set up Azure Resources
 
-## 4. Running Locally
+## 4 Add more commands
 
-## 5. Deploying to Azure
+## 5. Running Locally
 
-```
-
-```
+## 6. Deploying to Azure
