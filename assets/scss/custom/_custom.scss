@@ -16,3 +16,21 @@
 .main {
     padding-bottom: 7em;
 }
+
+
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+        --chroma-line-numbers-background: #3d3f4a;
+    }
+}
+
+@if ($defaultTheme == "dark") {
+    :root {
+        --chroma-line-numbers-background: #3d3f4a;
+    }
+} @else {
+    :root[data-theme="dark"] {
+        --chroma-line-numbers-background: #3d3f4a;
+    }
+}
