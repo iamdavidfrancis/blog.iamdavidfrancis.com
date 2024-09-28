@@ -1,13 +1,13 @@
 ---
-title: "Creating a Discord Bot with Azure Container Apps"
+title: "Creating a Discord Bot with Azure Container Apps - Part 1"
 date: 2024-09-27T17:52:00-07:00
-publish-date: 2024-09-27T17:52:00-07:00
-draft: true
+publish-date: 2024-09-28T12:00:00-07:00
+draft: false
 categories: ["development"]
 tags: ["ts", "js", "docker", "azure", "github", "CI/CD"]
 ---
 
-A few years ago, I published a [post about creating a docker bot](/posts/discord-bot/). A lot of fun learnings went into that post, but it's been 4 years and I went down the rabbit hole of making another discord bot from scratch. So I figured, if it's time for a new bot, it's time for a new blog post.
+A few years ago, I published a [post about creating a docker bot](/posts/discord-bot/). A lot of fun learnings went into that post, but it's been 4 years and I went down the rabbit hole of making another discord bot from scratch. So I figured, if it's time for a new bot, it's time for a new blog post. We're still leveraging the `discord.js` package, but with new ways of doing things and a new hosting model.
 
 This is another random ADHD project I threw together in a weekend then iterated on a little bit to make it easier to gather my thoughts. The upside is this time I have a mostly working GitHub repo this time.
 
@@ -25,6 +25,7 @@ Some things I'm doing differently in this bot is:
 
 1. Better Multi-Server support
 2. Azure Table Storage instead of a json db using `lowdb`
+3. Automating Deployments
 
 ## Getting Started
 
@@ -34,16 +35,11 @@ I'm still a big fan of [VS Code](https://code.visualstudio.com/) so all of the w
 
 This time around I'm going to try and cover the CI/CD setup I've thrown together, so if you want to follow along yourself, you'll want to have a [GitHub](https://github.com/) account and [Docker](https://www.docker.com/) installed.
 
-The steps are broken up as follows:
+This post got pretty long, so I'm going to break it up into a few part. I'll include links to all of the parts in each post. New links will be added as new posts are published.
 
-1. [Create a bot on Discord](#1-create-the-bot-on-discord)
-2. [Set up the bot code](#2-set-up-the-bot-code)
-3. [Add more commands](#3-add-more-commands)
-4. [Set up Azure Resources](#4-set-up-azure-resources)
-5. [Running Locally](#5-running-locally)
-6. [Deploying to Azure](#6-deploying-to-azure)
+{{% links/discord-bot %}}
 
-## 1. Create the bot on Discord
+## Create the bot on Discord
 
 Much of this is going to be the same as in the [original post](/posts/discord-bot/#1-create-the-bot-on-discord), but there's a couple changes. Since this bot will be using commands instead of reading every message, we don't need to have admin permissions.
 
@@ -57,7 +53,7 @@ Under "Default Install Settings" you'll want to set "Scopes" to `applications.co
 
 ## 2. Set up the bot code
 
-If you want to follow along yourself, I've set up a [template repo](https://github.com/iamdavidfrancis/discord-bot-template) on GitHub to make it a little bit easier. It already has the `package.json`, `tsconfig.json`, and `src/index.ts` files created.
+If you want to follow along yourself, I've set up a [template repo](https://github.com/iamdavidfrancis/discord-bot-template) on GitHub to make it a little bit easier. It already has the `package.json`, `tsconfig.json`, and `src/index.ts` files created. Once you've cloned it, you should run `npm install` to get all the packages downloaded to your `node_modules`.
 
 It also has a file named `.env.example`. I'm using the `dotenv` package to handle secrets when working locally. For now, you should rename the file `.env` and add your Discord Client ID and Token. The `.env` file is in the `.gitignore` so it won't be checked in with your secrets.
 
@@ -383,11 +379,3 @@ const { commandName } = interaction;
 This will call `deployCommands()` if we have the guild id and the guild id has not been seen this run.
 
 And with that, we now have a functioning bot. You should be able to run `npm run start` and the bot should connect. You can then use the install link from earlier to add the bot to your test server and run the `/help` command.
-
-## 3. Set up Azure Resources
-
-## 4 Add more commands
-
-## 5. Running Locally
-
-## 6. Deploying to Azure
